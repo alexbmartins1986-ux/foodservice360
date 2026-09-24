@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Contagem — Espeto Brasileiro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F6F4;--surface:#FFFFFF;--ink:#17201B;--muted:#667069;
+  --primary:#0B6E4F;--primary-dark:#085A40;--amber:#B45309;--amber-bg:#FBF1E3;
+  --red:#C2410C;--line:#E4E7E3;--shadow:0 2px 10px rgba(15,40,30,.08);font-size:16px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121614;--surface:#1B211E;--ink:#EAEEEB;--muted:#9AA39E;--primary:#22A57C;
+  --primary-dark:#1B8566;--line:#2A322E;--amber:#E0973F;--amber-bg:#2A2218;--shadow:0 2px 10px rgba(0,0,0,.3);
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+
+/* LOGIN */
+#login{position:fixed;inset:0;z-index:50;background:var(--primary);display:flex;flex-direction:column;
+  justify-content:center;padding:28px 24px calc(28px + env(safe-area-inset-bottom,0px));color:#fff}
+#login .marca{font-size:13px;font-weight:600;letter-spacing:.14em;opacity:.8;text-transform:uppercase}
+#login h1{font-size:30px;font-weight:700;line-height:1.1;margin:10px 0 4px}
+#login p.sub{opacity:.85;font-size:15px;margin-bottom:34px}
+#login label{display:block;font-size:13px;font-weight:600;margin:0 0 6px 2px;opacity:.9}
+#login .campo{margin-bottom:18px}
+#login input{width:100%;border:0;border-radius:12px;padding:15px 16px;font-size:17px;font-weight:500;color:var(--ink);background:#fff}
+#login .pin{letter-spacing:.4em;text-align:center;font-size:22px}
+#login button{width:100%;border:0;border-radius:12px;padding:16px;margin-top:8px;background:var(--ink);color:#fff;font-size:17px;font-weight:600}
+#login .demo{margin-top:18px;font-size:12.5px;opacity:.75;text-align:center;line-height:1.5}
+
+/* APP */
+#app{display:none;padding-bottom:96px}
+#app.on{display:block}
+header{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);
+  padding:calc(12px + env(safe-area-inset-top,0px)) 16px 10px}
+header .casa{font-size:12px;font-weight:700;letter-spacing:.09em;color:var(--primary);text-transform:uppercase}
+header h2{font-size:17px;font-weight:700;margin:1px 0 2px}
+header .data{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:9px;text-transform:capitalize}
+.progresso{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.barra{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.barra span{display:block;height:100%;width:0;background:var(--primary);transition:width .25s ease}
+.progresso small{font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.ferramentas{display:flex;gap:8px}
+.busca{flex:1;position:relative}
+.busca input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px 10px 36px;
+  font-size:15px;background:var(--bg);color:var(--ink)}
+.busca input:focus{outline:none;border-color:var(--primary);background:var(--surface)}
+.busca svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--muted)}
+.btn-cat{border:1.5px solid var(--line);background:var(--bg);border-radius:10px;padding:0 14px;font-size:14px;
+  font-weight:600;color:var(--ink);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-cat svg{width:16px;height:16px}
+
+.grupo-tit{position:sticky;top:0;z-index:8;background:var(--bg);padding:16px 16px 7px;
+  font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.item{background:var(--surface);display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.item .nome{flex:1;min-width:0}
+.item .nome b{display:block;font-size:14.5px;font-weight:600;line-height:1.3}
+.item .nome span{font-size:12px;color:var(--muted);font-weight:600}
+.item.pend{background:var(--amber-bg)}
+.item.pend .nome span{color:var(--amber)}
+.qtd{width:74px;flex:0 0 74px;border:1.5px solid var(--line);border-radius:10px;padding:11px 8px;
+  font-size:17px;font-weight:600;text-align:center;background:var(--bg);color:var(--ink)}
+.qtd:focus{outline:none;border-color:var(--primary);background:var(--surface)}
+.qtd.ok{border-color:var(--primary);background:var(--surface)}
+.qtd.falta{border-color:var(--red);background:#FEF0E9}
+.mais{flex:0 0 auto;border:0;background:transparent;padding:8px 4px;border-radius:8px;color:var(--muted);line-height:0}
+.mais svg{width:20px;height:20px}
+.mais.ativo{color:var(--primary)}
+
+.painel{background:var(--surface);border-bottom:1px solid var(--line);padding:0 16px 14px}
+.painel.hide{display:none}
+.painel .bloco{padding-top:12px}
+.painel label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.painel input,.painel select,.painel textarea{width:100%;border:1.5px solid var(--line);border-radius:9px;
+  padding:10px;font-size:14.5px;background:var(--bg);color:var(--ink)}
+.painel input:focus,.painel select:focus,.painel textarea:focus{outline:none;border-color:var(--primary);background:var(--surface)}
+.painel .corrige{margin-top:12px}
+.painel .campo-cond{margin-top:9px}
+.painel .campo-cond.hide{display:none}
+.excluir-aviso{background:var(--amber-bg);color:var(--amber);border-radius:9px;padding:10px;font-size:13px;font-weight:600;line-height:1.45}
+
+.inserir{margin:16px;padding:15px;border:1.5px dashed var(--primary);border-radius:12px;background:transparent;
+  color:var(--primary);font-size:15px;font-weight:700;width:calc(100% - 32px);display:flex;align-items:center;justify-content:center;gap:8px}
+
+.rodape{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.faltam{background:var(--amber-bg);color:var(--amber);border-radius:10px;padding:9px 12px;font-size:13px;font-weight:700;
+  margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.faltam.hide{display:none}
+.faltam button{border:0;background:var(--amber);color:#fff;border-radius:8px;padding:7px 11px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.enviar{width:100%;border:0;border-radius:12px;padding:16px;background:var(--primary);color:#fff;font-size:17px;font-weight:700;box-shadow:var(--shadow)}
+.enviar:active{background:var(--primary-dark)}
+
+/* overlays */
+.sheet{position:fixed;inset:0;z-index:60;background:rgba(10,20,15,.45);display:none;align-items:flex-end}
+.sheet.on{display:flex}
+.sheet .painel-sheet{background:var(--surface);width:100%;max-height:82vh;overflow:auto;border-radius:20px 20px 0 0;
+  padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet h3{font-size:18px;font-weight:700;margin-bottom:4px}
+.sheet p.sub{font-size:13.5px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+.sheet label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 5px;text-transform:uppercase;letter-spacing:.05em}
+.sheet input,.sheet select,.sheet textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--bg);color:var(--ink)}
+.sheet input:focus,.sheet select:focus,.sheet textarea:focus{outline:none;border-color:var(--primary);background:var(--surface)}
+.sheet .acoes{display:flex;gap:10px;margin-top:18px}
+.sheet .acoes button{flex:1;border:0;border-radius:11px;padding:14px;font-size:15px;font-weight:700}
+.sheet .cancela{background:var(--bg);color:var(--ink);border:1.5px solid var(--line)}
+.sheet .ok{background:var(--primary);color:#fff}
+.cats-lista button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:13px 4px;
+  border-bottom:1px solid var(--line);font-size:15px;font-weight:600;color:var(--ink)}
+
+/* resumo */
+#resumo{position:fixed;inset:0;z-index:70;background:var(--bg);display:none;flex-direction:column;
+  padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px));overflow:auto}
+#resumo.on{display:flex}
+#resumo .selo{width:56px;height:56px;border-radius:50%;background:var(--primary);display:grid;place-items:center;margin-bottom:16px}
+#resumo .selo svg{width:30px;height:30px;stroke:#fff}
+#resumo h2{font-size:23px;font-weight:700;margin-bottom:4px}
+#resumo p.lead{color:var(--muted);font-size:14.5px;margin-bottom:20px;line-height:1.5}
+#resumo .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px 16px;margin-bottom:16px}
+#resumo .card .l{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);font-size:14.5px;gap:12px}
+#resumo .card .l:last-child{border-bottom:0}
+#resumo .card .l b{font-weight:700}#resumo .card .l span{color:var(--muted);font-weight:700;white-space:nowrap}
+#resumo .aviso{background:var(--amber-bg);color:var(--amber);border-radius:12px;padding:14px;font-size:13.5px;font-weight:600;line-height:1.5;margin-bottom:20px}
+#resumo button{border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:600;width:100%;background:var(--ink);color:#fff}
+</style>
+</head>
+<body>
+
+<section id="login">
+  <div class="marca">Controle de estoque</div>
+  <h1 id="login-titulo">Contagem</h1>
+  <p class="sub">Entre para lançar a contagem de hoje.</p>
+  <div class="campo"><label for="nome">Seu nome</label><input id="nome" type="text" placeholder="Ex.: João" autocomplete="off"></div>
+  <div class="campo"><label for="pin">PIN (4 dígitos)</label><input id="pin" class="pin" type="tel" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+  <button onclick="entrar()">Entrar</button>
+  <p class="demo">Identifique-se para lançar a contagem de hoje.</p>
+</section>
+
+<main id="app">
+  <header>
+    <div class="casa" id="h-casa"></div>
+    <h2 id="h-setor"></h2>
+    <div class="data" id="h-data"></div>
+    <div class="progresso"><div class="barra"><span id="fill"></span></div><small id="cont">0 de 0</small></div>
+    <div class="ferramentas">
+      <div class="busca">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="busca" type="text" placeholder="Buscar produto" oninput="filtrar(this.value)">
+      </div>
+      <button class="btn-cat" onclick="abrirCats()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        Seções
+      </button>
+    </div>
+  </header>
+  <div id="lista"></div>
+  <button class="inserir" onclick="abrirInserir()">+ Inserir item novo</button>
+</main>
+
+<div class="rodape" id="rodape" style="display:none">
+  <div class="faltam hide" id="faltam"><span id="faltam-txt"></span><button onclick="irVazio()">Ir pro 1º</button></div>
+  <button class="enviar" onclick="enviar()">Enviar contagem</button>
+</div>
+
+<!-- SHEET: categorias -->
+<div class="sheet" id="sheet-cats">
+  <div class="painel-sheet">
+    <h3>Ir para a seção</h3>
+    <p class="sub">Toque para pular direto pra categoria.</p>
+    <div class="cats-lista" id="cats-lista"></div>
+  </div>
+</div>
+
+<!-- SHEET: inserir item -->
+<div class="sheet" id="sheet-inserir">
+  <div class="painel-sheet">
+    <h3>Inserir item novo</h3>
+    <p class="sub">Item que chegou e não está na lista. Vai como pendência pra aprovação antes de entrar na contagem.</p>
+    <label>Nome do produto</label>
+    <input id="novo-nome" placeholder="Ex.: Cerveja Eisenbahn Long Neck 355ml">
+    <label>Unidade de medida</label>
+    <select id="novo-un"></select>
+    <label>Motivo / observação</label>
+    <textarea id="novo-motivo" rows="2" placeholder="Ex.: compras passou a trazer nesse formato"></textarea>
+    <div class="acoes">
+      <button class="cancela" onclick="fecharSheet('sheet-inserir')">Cancelar</button>
+      <button class="ok" onclick="salvarNovo()">Adicionar pendência</button>
+    </div>
+  </div>
+</div>
+
+<section id="resumo">
+  <div class="selo"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+  <h2>Contagem enviada</h2>
+  <p class="lead" id="resumo-lead"></p>
+  <div class="card" id="resumo-itens"></div>
+  <div class="aviso" id="resumo-aviso" style="display:none"></div>
+  <button onclick="fecharResumo()">Voltar para a contagem</button>
+</section>
+
+<script>
+const CASA="Espeto Brasileiro";
+const SETOR="Cozinha";
+const UNIDADES=["BG","CX","GF","KG","L","ML","PC","PCT","PT","RL","TP","UN"];
+const GRUPOS=[
+{
+"nome": "CARNES BOVINAS",
+"itens": [
+{
+"id": "picanha-1",
+"nome": "Picanha",
+"un": "KG"
+},
+{
+"id": "contrafile-bovino-chorizo-2",
+"nome": "Contrafile Bovino (Chorizo)",
+"un": "KG"
+},
+{
+"id": "coracao-miolo-de-alcatra-3",
+"nome": "Coracao (miolo) de Alcatra",
+"un": "KG"
+},
+{
+"id": "file-mignon-4",
+"nome": "File Mignon",
+"un": "KG"
+},
+{
+"id": "lagarto-5",
+"nome": "Lagarto",
+"un": "KG"
+},
+{
+"id": "carne-bovina-moida-6",
+"nome": "Carne Bovina Moida",
+"un": "KG"
+}
+]
+},
+{
+"nome": "CARNES SUINAS E EMBUTIDOS",
+"itens": [
+{
+"id": "bisteca-suina-7",
+"nome": "Bisteca Suina",
+"un": "KG"
+},
+{
+"id": "linguica-calabresa-8",
+"nome": "Linguica Calabresa",
+"un": "KG"
+},
+{
+"id": "salsicha-grande-salsichao-9",
+"nome": "Salsicha Grande (Salsichao)",
+"un": "KG"
+},
+{
+"id": "charque-carne-seca-10",
+"nome": "Charque / Carne Seca",
+"un": "KG"
+},
+{
+"id": "lombo-salgado-11",
+"nome": "Lombo Salgado",
+"un": "KG"
+},
+{
+"id": "costela-salgada-12",
+"nome": "Costela Salgada",
+"un": "KG"
+},
+{
+"id": "bacon-fatiado-13",
+"nome": "Bacon Fatiado",
+"un": "KG"
+},
+{
+"id": "linguica-mineira-14",
+"nome": "Linguiça Mineira",
+"un": "KG"
+}
+]
+},
+{
+"nome": "FRANGO",
+"itens": [
+{
+"id": "file-de-peito-de-frango-15",
+"nome": "File de Peito de Frango",
+"un": "KG"
+},
+{
+"id": "file-de-coxa-de-frango-16",
+"nome": "File de Coxa de Frango",
+"un": "KG"
+},
+{
+"id": "coxa-c-sobrecoxa-de-frango-17",
+"nome": "Coxa c/ Sobrecoxa de Frango",
+"un": "KG"
+},
+{
+"id": "coracao-de-frango-18",
+"nome": "Coracao de Frango",
+"un": "KG"
+},
+{
+"id": "chicken-bits-empanitos-nugge-19",
+"nome": "Chicken Bits / Empanitos (nugget)",
+"un": "KG"
+}
+]
+},
+{
+"nome": "PEIXES E FRUTOS DO MAR",
+"itens": [
+{
+"id": "peixe-pangasius-20",
+"nome": "Peixe Pangasius",
+"un": "KG"
+},
+{
+"id": "camarao-com-casca-21",
+"nome": "Camarão com casca",
+"un": "KG"
+},
+{
+"id": "camarao-sem-casca-22",
+"nome": "Camarão sem casca",
+"un": "KG"
+}
+]
+},
+{
+"nome": "ESPETINHOS",
+"itens": [
+{
+"id": "espetinho-de-carne-com-queij-23",
+"nome": "Espetinho de Carne com Queijo",
+"un": "UN"
+},
+{
+"id": "espetinho-de-frango-24",
+"nome": "Espetinho de Frango",
+"un": "UN"
+},
+{
+"id": "espetinho-de-carne-alcatra-p-25",
+"nome": "Espetinho de Carne (Alcatra) - Pronto",
+"un": "UN"
+},
+{
+"id": "espetinho-de-coracao-pronto-26",
+"nome": "Espetinho de Coração - Pronto",
+"un": "UN"
+},
+{
+"id": "espetinho-de-file-mignon-27",
+"nome": "Espetinho de Filé Mignon",
+"un": "UN"
+},
+{
+"id": "espetinho-de-salsichao-pront-28",
+"nome": "Espetinho de Salsichão - Pronto",
+"un": "UN"
+},
+{
+"id": "espetinho-misto-29",
+"nome": "Espetinho Misto",
+"un": "UN"
+},
+{
+"id": "espeto-linguicinha-mineira-30",
+"nome": "Espeto Linguicinha Mineira",
+"un": "UN"
+},
+{
+"id": "espetinho-de-medalhao-de-fra-31",
+"nome": "Espetinho de Medalhão de Frango com Bacon",
+"un": "UN"
+}
+]
+},
+{
+"nome": "GRAOS E FARINHAS",
+"itens": [
+{
+"id": "arroz-parboilizado-5kg-32",
+"nome": "Arroz Parboilizado 5KG",
+"un": "UN"
+},
+{
+"id": "feijao-preto-1kg-33",
+"nome": "Feijão Preto 1KG",
+"un": "UN"
+},
+{
+"id": "farinha-de-trigo-1kg-34",
+"nome": "Farinha de Trigo 1KG",
+"un": "KG"
+},
+{
+"id": "farinha-de-mandioca-crua-1kg-35",
+"nome": "Farinha de Mandioca Crua 1KG",
+"un": "UN"
+},
+{
+"id": "farinha-panko-1kg-36",
+"nome": "Farinha Panko 1KG",
+"un": "PC"
+},
+{
+"id": "acucar-refinado-1kg-37",
+"nome": "Acucar Refinado 1KG",
+"un": "UN"
+},
+{
+"id": "ervilha-500g-38",
+"nome": "Ervilha 500g.",
+"un": "UN"
+}
+]
+},
+{
+"nome": "CONDIMENTOS E MOLHOS",
+"itens": [
+{
+"id": "sal-refinado-1kg-39",
+"nome": "Sal Refinado 1KG",
+"un": "UN"
+},
+{
+"id": "sal-grosso-churrasco-1kg-40",
+"nome": "Sal grosso Churrasco 1KG",
+"un": "UN"
+},
+{
+"id": "ketchup-galao-3-2kg-41",
+"nome": "Ketchup galão 3,2KG",
+"un": "L"
+},
+{
+"id": "mostarda-bisnaga-3-3kg-42",
+"nome": "Mostarda Bisnaga 3,3KG",
+"un": "L"
+},
+{
+"id": "molho-barbecue-3-5kg-43",
+"nome": "Molho barbecue 3,5KG",
+"un": "UN"
+},
+{
+"id": "molho-tartaro-bisnaga-44",
+"nome": "Molho tartáro bisnaga",
+"un": "KG"
+},
+{
+"id": "maionese-2-8kg-ou-3-0kg-bald-45",
+"nome": "Maionese 2,8KG ou 3,0kg balde (informar)",
+"un": "BG"
+},
+{
+"id": "extrato-de-tomate-4-1kg-46",
+"nome": "Extrato de Tomate 4,1KG",
+"un": "UN"
+},
+{
+"id": "molho-shoyu-1-litro-47",
+"nome": "Molho Shoyu 1 litro",
+"un": "L"
+},
+{
+"id": "vinagre-de-alcool-750ml-48",
+"nome": "Vinagre de Alcool 750ml",
+"un": "UN"
+},
+{
+"id": "vinagre-de-alcool-500ml-49",
+"nome": "Vinagre de Alcool 500ml",
+"un": "UN"
+},
+{
+"id": "colorau-1kg-50",
+"nome": "Colorau 1KG",
+"un": "UN"
+},
+{
+"id": "cebola-em-po-51",
+"nome": "Cebola Em Pó",
+"un": "KG"
+},
+{
+"id": "chimichurri-52",
+"nome": "Chimichurri",
+"un": "KG"
+},
+{
+"id": "oregano-53",
+"nome": "óregano",
+"un": "KG"
+},
+{
+"id": "tempero-ana-maria-54",
+"nome": "Tempero Ana Maria",
+"un": "KG"
+},
+{
+"id": "tempero-edu-guedes-55",
+"nome": "Tempero Edu Guedes",
+"un": "KG"
+},
+{
+"id": "tempero-lemon-pepper-56",
+"nome": "Tempero Lemon Pepper",
+"un": "KG"
+},
+{
+"id": "cominho-em-po-57",
+"nome": "Cominho em Pó",
+"un": "KG"
+},
+{
+"id": "ervas-finas-58",
+"nome": "Ervas Finas",
+"un": "KG"
+},
+{
+"id": "mel-59",
+"nome": "Mel",
+"un": "L"
+},
+{
+"id": "pimenta-do-reino-60",
+"nome": "Pimenta do Reino",
+"un": "KG"
+},
+{
+"id": "canela-em-po-61",
+"nome": "Canela em pó",
+"un": "KG"
+},
+{
+"id": "pimenta-calabresa-62",
+"nome": "Pimenta Calabresa",
+"un": "KG"
+},
+{
+"id": "paprica-defumada-63",
+"nome": "Paprica defumada",
+"un": "KG"
+},
+{
+"id": "pimenta-malagueta-64",
+"nome": "Pimenta malagueta",
+"un": "KG"
+},
+{
+"id": "cafe-tradicional-500g-65",
+"nome": "Cafe Tradicional 500g",
+"un": "UN"
+},
+{
+"id": "mate-guayra-250g-66",
+"nome": "Mate Guayrá 250g.",
+"un": "UN"
+},
+{
+"id": "nescau-2-01kg-67",
+"nome": "Nescau 2,01KG",
+"un": "KG"
+},
+{
+"id": "caldo-knorr-galinha-1-01kg-68",
+"nome": "Caldo Knorr Galinha 1,01KG",
+"un": "UN"
+},
+{
+"id": "caldo-knorr-carne-1-01kg-69",
+"nome": "Caldo Knorr Carne 1,01KG",
+"un": "UN"
+}
+]
+},
+{
+"nome": "OUTROS",
+"itens": [
+{
+"id": "nutella-700g-70",
+"nome": "Nutella 700g",
+"un": "PT"
+},
+{
+"id": "espaguete-semolado-n-8-1kg-m-71",
+"nome": "Espaguete Semolado N.8 1KG (macarrão 1kg)",
+"un": "PC"
+},
+{
+"id": "torresmo-72",
+"nome": "Torresmo",
+"un": "KG"
+},
+{
+"id": "pao-frances-73",
+"nome": "Pão francês",
+"un": "UN"
+},
+{
+"id": "massa-de-pastel-pc-c-10-74",
+"nome": "Massa de pastel pc c/ 10",
+"un": "UN"
+},
+{
+"id": "pao-de-hamburguer-75",
+"nome": "Pão de hambúrguer",
+"un": "UN"
+},
+{
+"id": "bolinho-de-bacalhau-76",
+"nome": "Bolinho de bacalhau",
+"un": "UN"
+},
+{
+"id": "bolinho-de-feijoada-77",
+"nome": "Bolinho de feijoada",
+"un": "UN"
+},
+{
+"id": "massa-pizza-lf-300g-78",
+"nome": "Massa Pizza LF 300G",
+"un": "UN"
+},
+{
+"id": "gas-de-macarico-227g-79",
+"nome": "Gás de maçarico 227G.",
+"un": "UN"
+},
+{
+"id": "gas-de-macarico-300ml-80",
+"nome": "Gás de maçarico 300ML",
+"un": "UN"
+}
+]
+},
+{
+"nome": "LATICINIOS",
+"itens": [
+{
+"id": "queijo-mussarela-81",
+"nome": "Queijo Mussarela",
+"un": "KG"
+},
+{
+"id": "queijo-coalho-medio-82",
+"nome": "Queijo Coalho Medio",
+"un": "KG"
+},
+{
+"id": "leite-uht-integral-1l-83",
+"nome": "Leite UHT Integral 1L",
+"un": "UN"
+},
+{
+"id": "leite-condensado-395g-84",
+"nome": "Leite Condensado 395g",
+"un": "UN"
+},
+{
+"id": "creme-de-leite-1-03kg-85",
+"nome": "Creme de Leite 1,03KG",
+"un": "TP"
+},
+{
+"id": "leite-de-coco-500ml-86",
+"nome": "Leite de Coco 500ml",
+"un": "UN"
+},
+{
+"id": "leite-de-coco-5l-87",
+"nome": "Leite de Coco 5L",
+"un": "UN"
+},
+{
+"id": "margarina-88",
+"nome": "Margarina",
+"un": "KG"
+},
+{
+"id": "queijo-parmesao-89",
+"nome": "Queijo Parmesão",
+"un": "KG"
+}
+]
+},
+{
+"nome": "BATATAS",
+"itens": [
+{
+"id": "batata-congelada-cg-7mm-90",
+"nome": "Batata Congelada CG 7mm",
+"un": "KG"
+}
+]
+},
+{
+"nome": "OLEOS E GORDURAS",
+"itens": [
+{
+"id": "oleo-de-soja-18l-91",
+"nome": "Oleo de Soja 18L",
+"un": "L"
+},
+{
+"id": "azeite-extra-virgem-500ml-92",
+"nome": "Azeite Extra Virgem 500ml",
+"un": "UN"
+},
+{
+"id": "azeite-dende-litro-93",
+"nome": "Azeite dendê (litro)",
+"un": "L"
+}
+]
+},
+{
+"nome": "HORTIFRUTI",
+"itens": [
+{
+"id": "abobrinha-94",
+"nome": "Abobrinha",
+"un": "KG"
+},
+{
+"id": "alecrim-95",
+"nome": "Alecrim",
+"un": "UN"
+},
+{
+"id": "alface-crespa-96",
+"nome": "Alface Crespa",
+"un": "UN"
+},
+{
+"id": "alho-inteiro-descascado-97",
+"nome": "Alho inteiro descascado",
+"un": "KG"
+},
+{
+"id": "batata-asterix-98",
+"nome": "Batata Asterix",
+"un": "KG"
+},
+{
+"id": "batata-inglesa-99",
+"nome": "Batata Inglesa",
+"un": "KG"
+},
+{
+"id": "cebola-100",
+"nome": "Cebola",
+"un": "KG"
+},
+{
+"id": "cenoura-101",
+"nome": "Cenoura",
+"un": "KG"
+},
+{
+"id": "coentro-102",
+"nome": "Coentro",
+"un": "UN"
+},
+{
+"id": "couve-103",
+"nome": "Couve",
+"un": "UN"
+},
+{
+"id": "louro-104",
+"nome": "Louro",
+"un": "UN"
+},
+{
+"id": "ovo-105",
+"nome": "Ovo",
+"un": "UN"
+},
+{
+"id": "pimentao-verde-106",
+"nome": "Pimentão verde",
+"un": "KG"
+},
+{
+"id": "salsa-107",
+"nome": "Salsa",
+"un": "UN"
+},
+{
+"id": "tomate-108",
+"nome": "Tomate",
+"un": "KG"
+},
+{
+"id": "brocolis-cru-109",
+"nome": "Brócolis cru",
+"un": "KG"
+}
+]
+},
+{
+"nome": "PREPAROS COZINHA",
+"itens": [
+{
+"id": "recheio-carne-moida-110",
+"nome": "Recheio Carne moida",
+"un": "KG"
+},
+{
+"id": "molho-camarao-111",
+"nome": "Molho camarão",
+"un": "KG"
+},
+{
+"id": "recheio-camarao-112",
+"nome": "Recheio camarão",
+"un": "KG"
+},
+{
+"id": "carne-seca-porcionada-113",
+"nome": "Carne seca porcionada",
+"un": "KG"
+},
+{
+"id": "carne-assada-pronta-114",
+"nome": "Carne assada pronta",
+"un": "KG"
+},
+{
+"id": "strogonoff-frango-pronto-115",
+"nome": "Strogonoff frango pronto",
+"un": "KG"
+},
+{
+"id": "file-de-frango-empanado-116",
+"nome": "Filé de frango empanado",
+"un": "KG"
+},
+{
+"id": "arroz-cozido-117",
+"nome": "Arroz cozido",
+"un": "KG"
+},
+{
+"id": "feijao-118",
+"nome": "Feijão",
+"un": "KG"
+},
+{
+"id": "pure-119",
+"nome": "Purê",
+"un": "KG"
+},
+{
+"id": "farofa-120",
+"nome": "Farofa",
+"un": "KG"
+},
+{
+"id": "mistura-de-alho-e-oleo-121",
+"nome": "Mistura de alho e óleo",
+"un": "KG"
+},
+{
+"id": "molho-madeira-122",
+"nome": "Molho madeira",
+"un": "KG"
+},
+{
+"id": "molho-tomate-123",
+"nome": "Molho tomate",
+"un": "KG"
+},
+{
+"id": "pasta-alho-124",
+"nome": "Pasta alho",
+"un": "KG"
+},
+{
+"id": "sal-temperado-125",
+"nome": "Sal temperado",
+"un": "KG"
+},
+{
+"id": "alho-frito-espeto-brasileiro-126",
+"nome": "Alho Frito - Espeto Brasileiro",
+"un": "KG"
+},
+{
+"id": "aipim-porcionado-127",
+"nome": "Aipim porcionado",
+"un": "KG"
+},
+{
+"id": "caldo-verde-128",
+"nome": "Caldo verde",
+"un": "KG"
+},
+{
+"id": "canja-129",
+"nome": "Canja",
+"un": "KG"
+},
+{
+"id": "macarrao-porcionado-130",
+"nome": "Macarrão porcionado",
+"un": "UN"
+},
+{
+"id": "churrasquinho-misto-131",
+"nome": "Churrasquinho misto",
+"un": "KG"
+},
+{
+"id": "frango-a-passarinho-132",
+"nome": "Frango a passarinho",
+"un": "KG"
+},
+{
+"id": "feijoada-133",
+"nome": "Feijoada",
+"un": "KG"
+},
+{
+"id": "hamburguer-134",
+"nome": "Hambúrguer",
+"un": "UN"
+},
+{
+"id": "file-mignon-porcionado-135",
+"nome": "Filé mignon porcionado",
+"un": "KG"
+},
+{
+"id": "sopa-de-ervilha-136",
+"nome": "Sopa de ervilha",
+"un": "KG"
+},
+{
+"id": "brocolis-preparo-137",
+"nome": "Brócolis preparo",
+"un": "KG"
+},
+{
+"id": "tempero-misto-138",
+"nome": "Tempero misto",
+"un": "KG"
+},
+{
+"id": "molho-rose-139",
+"nome": "Molho Rose",
+"un": "KG"
+},
+{
+"id": "file-de-frango-porcionado-140",
+"nome": "Filé de frango porcionado",
+"un": "KG"
+},
+{
+"id": "file-de-coxa-porcionado-141",
+"nome": "Filé de coxa porcionado",
+"un": "KG"
+},
+{
+"id": "contra-file-porcionado-142",
+"nome": "Contra-filé porcionado",
+"un": "KG"
+},
+{
+"id": "picanha-porcionada-143",
+"nome": "Picanha porcionada",
+"un": "KG"
+},
+{
+"id": "picadinho-de-carne-144",
+"nome": "Picadinho de carne",
+"un": "KG"
+}
+]
+},
+{
+"nome": "MARMITEX E POTES",
+"itens": [
+{
+"id": "marmitex-isopor-s-tampa-c-10-145",
+"nome": "Marmitex Isopor s/Tampa c/100 (quentinha)",
+"un": "UN"
+},
+{
+"id": "tampa-marmitex-isopor-tampa--146",
+"nome": "Tampa Marmitex Isopor  (tampa quentinha)",
+"un": "UN"
+},
+{
+"id": "divisoria-kraft-70-30-diviso-147",
+"nome": "DIVISORIA KRAFT 70/30 (divisória marmita Ifood)",
+"un": "UN"
+},
+{
+"id": "caixa-multiuso-1000ml-marmit-148",
+"nome": "CAIXA MULTIUSO 1000ML (marmita Ifood)",
+"un": "UN"
+},
+{
+"id": "caixa-de-pizza-30cm-149",
+"nome": "Caixa de pizza (30cm)",
+"un": "UN"
+},
+{
+"id": "pote-redondo-250ml-c-tampa-p-150",
+"nome": "Pote Redondo 250ml c/ tampa  (pote de feijão M)",
+"un": "UN"
+},
+{
+"id": "pote-redondo-500ml-c-tampa-p-151",
+"nome": "Pote Redondo 500ml c/ tampa  (pote de feijão G)",
+"un": "UN"
+},
+{
+"id": "pote-redondo-140ml-c-tampa-p-152",
+"nome": "Pote Redondo 140ml c/ tampa (pote de feijão P)",
+"un": "UN"
+}
+]
+},
+{
+"nome": "HAMBURGUEIRAS",
+"itens": [
+{
+"id": "hamburgueira-p-153",
+"nome": "Hamburgueira (P)",
+"un": "UN"
+},
+{
+"id": "cachorreira-hot-dog-154",
+"nome": "Cachorreira Hot Dog",
+"un": "UN"
+},
+{
+"id": "hamburgueira-g-155",
+"nome": "Hamburgueira (G)",
+"un": "UN"
+}
+]
+},
+{
+"nome": "DESCARTAVEIS",
+"itens": [
+{
+"id": "espeto-de-bambu-30cm-palito--156",
+"nome": "Espeto de Bambu 30cm (Palito Espeto)",
+"un": "UN"
+}
+]
+},
+{
+"nome": "PRODUTOS DE LIMPEZA",
+"itens": [
+{
+"id": "detergente-500ml-157",
+"nome": "Detergente 500ml",
+"un": "UN"
+},
+{
+"id": "sabao-em-po-5kg-158",
+"nome": "Sabao em Pó 5kg",
+"un": "KG"
+},
+{
+"id": "sabao-em-po-800g-159",
+"nome": "Sabao em pó 800g",
+"un": "UN"
+},
+{
+"id": "sabao-pastoso-500g-160",
+"nome": "Sabao Pastoso 500g",
+"un": "UN"
+},
+{
+"id": "agua-sanitaria-1l-161",
+"nome": "Agua Sanitaria 1L",
+"un": "UN"
+},
+{
+"id": "alcool-46o-1l-162",
+"nome": "Alcool 46º 1L",
+"un": "UN"
+},
+{
+"id": "alcool-gel-80-barrica-12kg-163",
+"nome": "Alcool Gel 80 Barrica 12KG",
+"un": "KG"
+},
+{
+"id": "multiuso-500ml-164",
+"nome": "Multiuso 500ml",
+"un": "UN"
+},
+{
+"id": "limpa-chapa-anti-incrustrant-165",
+"nome": "Limpa Chapa anti incrustrante 5L",
+"un": "KG"
+},
+{
+"id": "sabonete-antisseptico-gel-5l-166",
+"nome": "Sabonete Antisseptico Gel 5L",
+"un": "UN"
+},
+{
+"id": "sanitizante-1kg-po-167",
+"nome": "Sanitizante 1kg pó",
+"un": "KG"
+},
+{
+"id": "desinfetante-5l-168",
+"nome": "Desinfetante 5L",
+"un": "UN"
+}
+]
+},
+{
+"nome": "UTENSILIOS DE LIMPEZA",
+"itens": [
+{
+"id": "esponja-multiuso-c-10-169",
+"nome": "Esponja Multiuso c/10",
+"un": "UN"
+},
+{
+"id": "esponja-de-aco-bombril-c-6-170",
+"nome": "Esponja de Aco Bombril c/6",
+"un": "UN"
+},
+{
+"id": "fibra-fibraco-171",
+"nome": "Fibra Fibraco",
+"un": "PC"
+},
+{
+"id": "pano-alvejado-40x60-c-10-172",
+"nome": "Pano Alvejado 40x60 c/10",
+"un": "PC"
+},
+{
+"id": "pano-multiuso-azul-20x300mts-173",
+"nome": "Pano Multiuso Azul 20x300mts (perfex)",
+"un": "RL"
+},
+{
+"id": "pano-de-chao-alvejado-45x70-174",
+"nome": "Pano de Chao Alvejado 45x70",
+"un": "UN"
+}
+]
+},
+{
+"nome": "HIGIENE",
+"itens": [
+{
+"id": "saco-para-lixo-preto-200l-c--175",
+"nome": "Saco para Lixo Preto 200L c/100",
+"un": "UN"
+},
+{
+"id": "saco-bd-transparente-50x70-c-176",
+"nome": "Saco BD Transparente 50x70 c/5KG (saco degelo)",
+"un": "UN"
+},
+{
+"id": "bobina-termica-80x40-c-30-im-177",
+"nome": "Bobina Termica 80x40 c/30 IMPRESSORA",
+"un": "UN"
+},
+{
+"id": "bobina-picotada-20x35-c-550--178",
+"nome": "Bobina Picotada 20x35 c/550 1KG (P)",
+"un": "UN"
+},
+{
+"id": "bobina-picotada-40x60-c-350--179",
+"nome": "Bobina Picotada 40x60 c/350 6KG (G)",
+"un": "UN"
+},
+{
+"id": "bobina-pvc-filme-40cm-papel--180",
+"nome": "Bobina PVC Filme 40cm (Papel insulfime)",
+"un": "UN"
+},
+{
+"id": "rolo-aluminio-30x100mts-pape-181",
+"nome": "Rolo Aluminio 30x100mts (papel alumínio)",
+"un": "UN"
+},
+{
+"id": "papel-interfolha-20x21cm-c-1-182",
+"nome": "Papel Interfolha 20x21cm c/1000",
+"un": "PC"
+},
+{
+"id": "papel-higienico-rolao-banhei-183",
+"nome": "Papel Higiênico Rolao Banheiro 2º piso",
+"un": "UN"
+}
+]
+}
+];
+
+
+let valores={},obs={},correcoes={},novos=[];
+const LSKEY='demo_'+SETOR;
+try{const s=JSON.parse(localStorage.getItem(LSKEY)||'{}');valores=s.valores||{};obs=s.obs||{};correcoes=s.correcoes||{};}catch(e){}
+const TOTAL=GRUPOS.reduce((s,g)=>s+g.itens.length,0);
+
+function salvarLocal(){try{localStorage.setItem(LSKEY,JSON.stringify({valores,obs,correcoes}))}catch(e){}}
+
+function entrar(){
+  window._nome=document.getElementById('nome').value.trim()||'Colega';
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').classList.add('on');
+  document.getElementById('rodape').style.display='block';
+}
+
+function init(){
+  document.title='Contagem '+SETOR+' — '+CASA;
+  document.getElementById('login-titulo').innerHTML='Contagem<br>da '+SETOR;
+  document.getElementById('h-casa').textContent=CASA+' · '+SETOR;
+  document.getElementById('h-setor').textContent='Contagem de estoque';
+  document.getElementById('h-data').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  const un=document.getElementById('novo-un');
+  UNIDADES.forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=u;un.appendChild(o)});
+  render();
+}
+
+function render(){
+  const lista=document.getElementById('lista');lista.innerHTML='';
+  GRUPOS.forEach((g,gi)=>{
+    const t=document.createElement('div');t.className='grupo-tit';t.id='cat-'+gi;t.textContent=g.nome;lista.appendChild(t);
+    g.itens.forEach(it=>{
+      const v=valores[it.id]??'';
+      const temPend=!!correcoes[it.id];
+      const row=document.createElement('div');row.className='item'+(temPend?' pend':'');row.id='row-'+it.id;
+      row.dataset.nome=it.nome.toLowerCase();
+      row.innerHTML=
+        '<div class="nome"><b>'+it.nome+'</b><span>'+(temPend?rotuloPend(it.id):it.un)+'</span></div>'+
+        '<input class="qtd'+(v!==''?' ok':'')+'" inputmode="decimal" placeholder="—" value="'+v+'" oninput="setVal(\''+it.id+'\',this)">'+
+        '<button class="mais" id="mais-'+it.id+'" onclick="togglePainel(\''+it.id+'\')" title="Observação e correção">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>';
+      lista.appendChild(row);
+      const p=document.createElement('div');p.className='painel hide';p.id='pan-'+it.id;
+      p.innerHTML=painelHTML(it);lista.appendChild(p);
+    });
+  });
+  atualizar();
+}
+
+function rotuloPend(id){const c=correcoes[id];if(!c)return '';
+  if(c.tipo==='excluir')return 'exclusão solicitada';
+  if(c.tipo==='nome')return 'correção de nome';
+  if(c.tipo==='unidade')return 'correção de unidade';return 'correção solicitada';}
+
+function painelHTML(it){
+  return '<div class="bloco"><label>Observação</label>'+
+    '<input placeholder="Algo a relatar sobre este item (opcional)" value="'+(obs[it.id]||'')+'" oninput="setObs(\''+it.id+'\',this.value)"></div>'+
+    '<div class="corrige"><label>Corrigir item</label>'+
+    '<select onchange="tipoCorrige(\''+it.id+'\',this.value)">'+
+      '<option value="">Nenhuma correção</option>'+
+      '<option value="nome">Nome do item está errado</option>'+
+      '<option value="unidade">Unidade de medida está errada</option>'+
+      '<option value="excluir">Excluir item (não existe mais)</option>'+
+    '</select>'+
+    '<div class="campo-cond hide" id="cc-'+it.id+'"></div></div>';
+}
+
+function setVal(id,el){valores[id]=el.value;el.classList.toggle('ok',el.value!=='');el.classList.remove('falta');salvarLocal();atualizar()}
+function setObs(id,v){obs[id]=v;salvarLocal()}
+function togglePainel(id){document.getElementById('pan-'+id).classList.toggle('hide');document.getElementById('mais-'+id).classList.toggle('ativo')}
+
+function tipoCorrige(id,tipo){
+  const cc=document.getElementById('cc-'+id);
+  if(!tipo){cc.className='campo-cond hide';cc.innerHTML='';delete correcoes[id];marcaPend(id);salvarLocal();return}
+  cc.className='campo-cond';
+  if(tipo==='nome'){cc.innerHTML='<input placeholder="Nome correto do item" oninput="setCorr(\''+id+'\',\'nome\',this.value)">';}
+  else if(tipo==='unidade'){let o=UNIDADES.map(u=>'<option value="'+u+'">'+u+'</option>').join('');
+    cc.innerHTML='<select onchange="setCorr(\''+id+'\',\'unidade\',this.value)"><option value="">Escolha a unidade correta</option>'+o+'</select>';}
+  else if(tipo==='excluir'){cc.innerHTML='<div class="excluir-aviso">Este item será enviado como pedido de exclusão. Some da contagem só depois da sua aprovação.</div>';
+    correcoes[id]={tipo:'excluir',valor:true};marcaPend(id);salvarLocal();}
+}
+function setCorr(id,tipo,valor){correcoes[id]={tipo,valor};marcaPend(id);salvarLocal()}
+function marcaPend(id){const row=document.getElementById('row-'+id);const temPend=!!correcoes[id];
+  row.classList.toggle('pend',temPend);const span=row.querySelector('.nome span');
+  const it=acharItem(id);span.textContent=temPend?rotuloPend(id):it.un}
+
+function atualizar(){
+  const feitos=GRUPOS.reduce((s,g)=>s+g.itens.filter(it=>(valores[it.id]??'')!=='').length,0);
+  document.getElementById('fill').style.width=(feitos/TOTAL*100)+'%';
+  document.getElementById('cont').textContent=feitos+' de '+TOTAL;
+}
+
+function filtrar(q){
+  q=q.trim().toLowerCase();
+  document.querySelectorAll('.item').forEach(r=>{
+    const match=!q||r.dataset.nome.includes(q);
+    r.style.display=match?'':'none';
+    const pan=document.getElementById('pan-'+r.id.slice(4));if(pan&&!match)pan.classList.add('hide');
+  });
+  document.querySelectorAll('.grupo-tit').forEach(t=>t.style.display=q?'none':'');
+}
+
+function abrirCats(){
+  const c=document.getElementById('cats-lista');c.innerHTML='';
+  GRUPOS.forEach((g,gi)=>{const b=document.createElement('button');b.textContent=g.nome;
+    b.onclick=()=>{fecharSheet('sheet-cats');document.getElementById('cat-'+gi).scrollIntoView({behavior:'smooth'})};c.appendChild(b)});
+  document.getElementById('sheet-cats').classList.add('on');
+}
+function abrirInserir(){document.getElementById('sheet-inserir').classList.add('on')}
+function fecharSheet(id){document.getElementById(id).classList.remove('on')}
+function salvarNovo(){
+  const nome=document.getElementById('novo-nome').value.trim();
+  if(!nome){alert('Escreva o nome do produto.');return}
+  novos.push({nome,un:document.getElementById('novo-un').value,motivo:document.getElementById('novo-motivo').value.trim()});
+  document.getElementById('novo-nome').value='';document.getElementById('novo-motivo').value='';
+  fecharSheet('sheet-inserir');
+  alert('Item adicionado como pendência. Ele vai junto no envio pra sua aprovação.');
+}
+
+function irVazio(){
+  for(const g of GRUPOS)for(const it of g.itens){
+    if((valores[it.id]??'')===''){const el=document.querySelector('#row-'+it.id+' .qtd');
+      el.classList.add('falta');el.scrollIntoView({behavior:'smooth',block:'center'});el.focus();return}}
+}
+
+function montarDados(){
+  const itens=[];
+  GRUPOS.forEach(g=>g.itens.forEach(it=>{
+    itens.push({categoria:g.nome,produto:it.nome,unidade:it.un,qtd:(valores[it.id]??''),obs:(obs[it.id]||'')});
+  }));
+  const corr=Object.entries(correcoes).map(([id,c])=>({produto:(acharItem(id).nome||id),tipo:c.tipo,valor:(c.valor===true?'':c.valor)}));
+  return {casa:CASA,setor:SETOR,responsavel:(window._nome||''),itens,correcoes:corr,novos};
+}
+
+async function enviar(){
+  const vazios=[];GRUPOS.forEach(g=>g.itens.forEach(it=>{if((valores[it.id]??'')==='')vazios.push(it.id)}));
+  if(vazios.length){
+    const f=document.getElementById('faltam');f.classList.remove('hide');
+    document.getElementById('faltam-txt').textContent='Faltam '+vazios.length+' itens. Todos precisam de contagem (zero conta).';
+    vazios.forEach(id=>{const el=document.querySelector('#row-'+id+' .qtd');if(el)el.classList.add('falta')});
+    irVazio();return;
+  }
+  const btn=document.querySelector('.enviar');const rot=btn.textContent;btn.disabled=true;btn.textContent='Enviando...';
+  const dados=montarDados();
+  try{
+    const r=await fetch('../enviar.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(dados)});
+    const j=await r.json().catch(()=>({ok:false,erro:'resposta inesperada do servidor'}));
+    if(j.ok){mostrarResumo(true);limparTudo();}
+    else{alert('Não consegui enviar: '+(j.erro||'erro desconhecido'));}
+  }catch(e){
+    mostrarResumo(false); // sem servidor PHP (ex.: testando fora do site)
+  }finally{
+    btn.disabled=false;btn.textContent=rot;
+  }
+}
+
+function mostrarResumo(enviado){
+  document.getElementById('resumo-lead').textContent=
+    (window._nome||'Você')+' concluiu a contagem dos '+TOTAL+' itens em '+new Date().toLocaleDateString('pt-BR')+'.';
+  const box=document.getElementById('resumo-itens');box.innerHTML='';
+  const linha=(a,b)=>{const l=document.createElement('div');l.className='l';l.innerHTML='<b>'+a+'</b><span>'+b+'</span>';box.appendChild(l)};
+  linha('Itens contados',TOTAL+' de '+TOTAL);
+  linha('Correções solicitadas',Object.keys(correcoes).length);
+  linha('Itens novos sugeridos',novos.length);
+  linha('Observações',Object.values(obs).filter(v=>v&&v.trim()).length);
+  const a=document.getElementById('resumo-aviso');a.style.display='';
+  a.textContent=enviado
+    ? 'Planilha enviada pro email com a data de hoje. Pode fechar.'
+    : 'Modo teste (sem servidor): a planilha ainda não saiu. No site publicado, o envio é real.';
+  document.getElementById('resumo').classList.add('on');
+}
+
+function limparTudo(){
+  valores={};obs={};correcoes={};novos=[];
+  try{localStorage.removeItem(LSKEY)}catch(e){}
+  render();
+}
+function fecharResumo(){document.getElementById('resumo').classList.remove('on')}
+
+function acharItem(id){for(const g of GRUPOS)for(const it of g.itens)if(it.id===id)return it;return{un:''}}
+init();
+</script>
+</body>
+</html>

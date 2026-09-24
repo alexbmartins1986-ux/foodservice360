@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Validar notas — Espeto Brasileiro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F6F4;--surface:#fff;--ink:#17201B;--muted:#667069;--primary:#0B6E4F;--primary-dark:#085A40;
+  --amber:#B45309;--amber-bg:#FBF1E3;--roxo:#7C3AED;--roxo-bg:#F4EEFF;--azul:#0369A1;--azul-bg:#EAF5FC;
+  --line:#E4E7E3;--shadow:0 2px 10px rgba(15,40,30,.08);font-size:16px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121614;--surface:#1B211E;--ink:#EAEEEB;
+  --muted:#9AA39E;--primary:#22A57C;--primary-dark:#1B8566;--line:#2A322E;--amber:#E0973F;--amber-bg:#2A2218;
+  --roxo:#A78BFA;--roxo-bg:#241C33;--azul:#38BDF8;--azul-bg:#132430}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+
+header{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);
+  padding:calc(14px + env(safe-area-inset-top,0px)) 18px 12px}
+header .tit{font-size:12px;font-weight:700;letter-spacing:.09em;color:var(--primary);text-transform:uppercase}
+header h1{font-size:18px;font-weight:700;margin:2px 0 10px}
+header select{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:11px;font-size:14.5px;background:var(--bg);color:var(--ink)}
+header .btn-add-manual{width:100%;border:1.5px dashed var(--primary);background:transparent;color:var(--primary);
+  border-radius:10px;padding:11px;font-size:13.5px;font-weight:700;margin-top:10px}
+
+.campo-form{padding:0 0 16px}
+.campo-form label{display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.campo-form input,.campo-form select,.campo-form textarea{width:100%;border:1.5px solid var(--line);border-radius:9px;
+  padding:11px;font-size:14.5px;background:var(--bg);color:var(--ink)}
+.campo-form.hide{display:none}
+.linha-item{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px;background:var(--surface)}
+.linha-item .campo-mini{margin-bottom:7px}
+.linha-item .campo-mini label{display:block;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px}
+.linha-item input,.linha-item select{width:100%;border:1.5px solid var(--line);border-radius:8px;padding:9px;font-size:14px;background:var(--bg);color:var(--ink)}
+.linha-item .duas-col{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.linha-item .del-linha{width:100%;border:0;background:var(--amber-bg);color:var(--amber);border-radius:8px;font-size:12.5px;font-weight:700;padding:8px;margin-top:2px}
+.btn-mais-item{width:100%;border:1.5px dashed var(--line);background:transparent;color:var(--primary);
+  border-radius:9px;padding:10px;font-size:13.5px;font-weight:700;margin-top:2px}
+.foto-preview{margin-top:10px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.foto-preview img{width:100%;display:block}
+.foto-original-link{display:inline-block;margin-top:8px;color:var(--primary);font-weight:700;font-size:13.5px;text-decoration:none}
+
+#lista{padding:14px 16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow)}
+.card .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
+.card b{font-size:15.5px;display:block}
+.card .forn{color:var(--muted);font-size:13px;font-weight:600}
+.card .valor{font-size:16px;font-weight:700;color:var(--primary);white-space:nowrap}
+.card .meta{font-size:12.5px;color:var(--muted);margin-top:4px}
+.vazio{text-align:center;color:var(--muted);padding:40px 20px;font-size:14.5px;line-height:1.6}
+
+/* detalhe (sheet) */
+.sheet{position:fixed;inset:0;z-index:60;background:var(--bg);display:none;flex-direction:column}
+.sheet.on{display:flex}
+.sheet .cabecalho{padding:calc(14px + env(safe-area-inset-top,0px)) 16px 12px;background:var(--surface);border-bottom:1px solid var(--line)}
+.sheet .cabecalho .voltar{border:0;background:transparent;color:var(--primary);font-size:14.5px;font-weight:700;margin-bottom:8px}
+.sheet .cabecalho h2{font-size:17px;font-weight:700}
+.sheet .cabecalho .forn{color:var(--muted);font-size:13.5px;font-weight:600}
+.sheet .corpo{flex:1;overflow:auto;padding:14px 16px}
+
+.item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.item .l1{display:flex;justify-content:space-between;gap:10px}
+.item b{font-size:14.5px}
+.item .qtd{font-size:13.5px;color:var(--muted);font-weight:600;white-space:nowrap}
+.item textarea{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:9px;font-size:13.5px;margin-top:9px;background:var(--bg);color:var(--ink);min-height:40px}
+.item textarea:focus{outline:none;border-color:var(--amber);background:var(--amber-bg)}
+.item.divergente{border-left:4px solid var(--amber)}
+.item .extras{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+.item .chip{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.item .chip input[type=checkbox]{width:16px;height:16px;accent-color:var(--primary)}
+.item select.transf{margin-top:8px;width:100%;border:1.5px solid var(--line);border-radius:9px;padding:9px;font-size:13.5px;background:var(--bg);color:var(--ink)}
+.item select.transf.hide{display:none}
+.item.marcado-bonif{border-left:4px solid var(--roxo);background:var(--roxo-bg)}
+.item.marcado-transf{border-left:4px solid var(--azul);background:var(--azul-bg)}
+
+.bloco-final{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:6px}
+.bloco-final label{display:block;font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.bloco-final input{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:11px;font-size:15px;background:var(--bg);color:var(--ink)}
+.bloco-final .aviso-parc{font-size:12.5px;color:var(--amber);margin-top:6px;font-weight:600}
+
+.rodape-fixo{padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line)}
+.confirmar{width:100%;border:0;border-radius:12px;padding:16px;background:var(--primary);color:#fff;font-size:16px;font-weight:700}
+.confirmar:active{background:var(--primary-dark)}
+.confirmar:disabled{opacity:.6}
+
+.link-suspeita{width:100%;border:0;background:transparent;color:var(--muted);font-size:12.5px;font-weight:700;
+  padding:10px 4px 2px;text-align:center}
+.bloco-exclusao{margin-top:8px}
+.bloco-exclusao.hide{display:none}
+.bloco-exclusao textarea{width:100%;border:1.5px solid #DC2626;border-radius:9px;padding:10px;font-size:13.5px;
+  background:var(--bg);color:var(--ink);margin-bottom:8px;min-height:50px}
+.btn-excluir{width:100%;border:0;border-radius:10px;padding:12px;background:#DC2626;color:#fff;font-size:14px;font-weight:700}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tit">Espeto Brasileiro</div>
+  <h1>Notas pendentes</h1>
+  <select id="loja" onchange="carregarLista()"></select>
+  <button class="btn-add-manual" onclick="abrirAdicionar()">+ Adicionar nota de compra avulsa</button>
+</header>
+
+<div id="lista"></div>
+
+<!-- SHEET: adicionar nota manual (compra avulsa) -->
+<div class="sheet" id="sheet-add">
+  <div class="cabecalho">
+    <button class="voltar" onclick="fecharSheet('sheet-add')">‹ Voltar</button>
+    <h2>Nova nota de compra avulsa</h2>
+    <div class="forn">Fornecedor de rua, feira, nota escrita à mão, etc.</div>
+  </div>
+  <div class="corpo">
+    <div class="campo-form">
+      <label>Fornecedor</label>
+      <input id="add-fornecedor" placeholder="Nome do fornecedor ou local">
+    </div>
+    <div class="campo-form">
+      <label>Data da compra</label>
+      <input type="date" id="add-data">
+    </div>
+    <div class="campo-form">
+      <label>Itens</label>
+      <div id="add-itens"></div>
+      <button class="btn-mais-item" onclick="addLinhaItem()">+ Adicionar item</button>
+    </div>
+    <div class="campo-form">
+      <label>Forma de pagamento</label>
+      <select id="add-pagamento" onchange="mudouPagamento()">
+        <option value="Crédito">Crédito</option>
+        <option value="Débito">Débito</option>
+        <option value="Dinheiro">Dinheiro</option>
+        <option value="PIX">PIX</option>
+      </select>
+    </div>
+    <div class="campo-form" id="add-campo-cartao">
+      <label>Identificação do cartão</label>
+      <input id="add-cartao" placeholder="Ex.: Master final 1234 (nunca o número completo)">
+    </div>
+    <div class="campo-form hide" id="add-campo-dinheiro">
+      <label>De onde veio o dinheiro</label>
+      <textarea id="add-obs-dinheiro" rows="2" placeholder="Ex.: retirada do caixa, dia 15/09"></textarea>
+    </div>
+    <div class="campo-form hide" id="add-campo-pix">
+      <label>Conta/chave usada</label>
+      <input id="add-pix" placeholder="Ex.: PIX Nubank da loja">
+    </div>
+    <div class="campo-form">
+      <label class="chip" style="font-size:14px;color:var(--ink)"><input type="checkbox" id="add-pago" checked onchange="mudouPago()"> Já foi pago (compra à vista)</label>
+    </div>
+    <div class="campo-form hide" id="add-campo-vencimento">
+      <label>Data de vencimento</label>
+      <input type="date" id="add-vencimento">
+    </div>
+    <div class="campo-form">
+      <label>Foto da nota (obrigatória)</label>
+      <input type="file" id="add-foto" accept="image/*" capture="environment">
+    </div>
+    <button class="confirmar" id="btn-add-enviar" onclick="enviarNotaManual()">Lançar compra avulsa</button>
+  </div>
+</div>
+
+<div class="sheet" id="sheet-nota">
+  <div class="cabecalho">
+    <button class="voltar" onclick="fecharNota()">‹ Voltar</button>
+    <h2 id="d-titulo"></h2>
+    <div class="forn" id="d-forn"></div>
+  </div>
+  <div class="corpo">
+    <div id="d-manual-info"></div>
+    <div id="d-itens"></div>
+    <div class="bloco-final">
+      <label>Data de vencimento</label>
+      <input type="date" id="d-vencimento">
+      <div class="aviso-parc" id="d-avisoparc" style="display:none"></div>
+    </div>
+  </div>
+  <div class="rodape-fixo">
+    <button class="confirmar" id="btn-confirmar" onclick="confirmarNota()">Confirmar recebimento</button>
+    <button class="link-suspeita" onclick="toggleExclusao()">⚠ Nota suspeita (não recebida) — solicitar exclusão</button>
+    <div class="bloco-exclusao hide" id="bloco-exclusao">
+      <label>Por que essa nota é suspeita?</label>
+      <textarea id="motivo-exclusao" rows="2" placeholder="Ex.: mercadoria nunca chegou, fornecedor desconhecido, valor não confere com nada pedido..."></textarea>
+      <button class="btn-excluir" onclick="solicitarExclusao()">Solicitar exclusão desta nota</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let LOJAS=[], NOTAS=[], atual=null, divergencias={}, bonificacoes={}, transferencias={};
+const UNIDADES_MANUAL=['UN','KG','G','L','ML','CX','PCT','SC','GF','PT','TP','RL'];
+
+function fecharSheet(id){ document.getElementById(id).classList.remove('on'); }
+
+async function init(){
+  const r=await fetch('lojas.json'); const d=await r.json(); LOJAS=d.lojas;
+  const sel=document.getElementById('loja');
+  LOJAS.forEach(l=>{const o=document.createElement('option');o.value=l.id;o.textContent=l.nome;sel.appendChild(o)});
+  carregarLista();
+}
+
+async function carregarLista(){
+  const loja=document.getElementById('loja').value;
+  const r=await fetch('listar.php?loja='+encodeURIComponent(loja));
+  const j=await r.json();
+  NOTAS=j.notas||[];
+  const box=document.getElementById('lista'); box.innerHTML='';
+  if(!NOTAS.length){box.innerHTML='<div class="vazio">Nenhuma nota pendente para esta loja no momento.</div>';return}
+  NOTAS.forEach((nota,i)=>{
+    const c=document.createElement('div'); c.className='card'; c.onclick=()=>abrirNota(i);
+    c.innerHTML='<div class="top"><div><b>Nota '+nota.numero+'</b><div class="forn">'+nota.fornecedorNome+'</div></div>'+
+      '<div class="valor">R$ '+Number(nota.valorTotal||0).toLocaleString('pt-BR',{minimumFractionDigits:2})+'</div></div>'+
+      '<div class="meta">'+nota.itens.length+' itens · emitida em '+formatarData(nota.emissao)+'</div>';
+    box.appendChild(c);
+  });
+}
+
+function formatarData(iso){ if(!iso) return '—'; const d=new Date(iso); return isNaN(d)?iso:d.toLocaleDateString('pt-BR'); }
+
+function abrirNota(i){
+  atual=NOTAS[i]; divergencias={}; bonificacoes={}; transferencias={};
+  document.getElementById('d-titulo').textContent='Nota '+atual.numero+' · série '+(atual.serie||'-');
+  document.getElementById('d-forn').textContent=atual.fornecedorNome+' · CNPJ '+atual.fornecedorCnpj;
+  const infoBox = document.getElementById('d-manual-info');
+  if (atual.origem === 'manual') {
+    infoBox.innerHTML =
+      '<div class="campo-form"><label>Forma de pagamento</label>'+
+      '<div style="font-size:14.5px;font-weight:700">'+(atual.formaPagamento||'—')+
+      (atual.identificacaoPagamento ? ' · '+atual.identificacaoPagamento : '')+'</div></div>'+
+      (atual.fotoNota ? '<a class="foto-original-link" href="'+atual.fotoNota+'" target="_blank">📷 Ver foto da nota original</a>' : '');
+  } else {
+    infoBox.innerHTML = '';
+  }
+  const box=document.getElementById('d-itens'); box.innerHTML='';
+  const lojaAtual = document.getElementById('loja').value;
+  const outrasLojas = LOJAS.filter(l => l.id !== lojaAtual);
+  atual.itens.forEach((it,idx)=>{
+    const d=document.createElement('div'); d.className='item'; d.id='it-'+idx;
+    const opcoesLojas = outrasLojas.map(l=>'<option value="'+l.id+'">'+l.nome+'</option>').join('');
+    d.innerHTML='<div class="l1"><b>'+it.produto+'</b><span class="qtd">'+it.qtd+' '+it.unidade+'</span></div>'+
+      '<textarea placeholder="Bateu certinho. Toque aqui só se tiver alguma divergência (quantidade, avaria, etc.)" '+
+      'oninput="marcarDivergencia('+idx+',this.value)"></textarea>'+
+      '<div class="extras">'+
+        '<label class="chip"><input type="checkbox" onchange="marcarBonificacao('+idx+',this.checked)"> Bonificação (item de brinde, não entra no custo)</label>'+
+        (opcoesLojas ? '<label class="chip"><input type="checkbox" onchange="toggleTransferencia('+idx+',this.checked)"> Transferir para outra loja</label>' : '')+
+      '</div>'+
+      (opcoesLojas ? '<select class="transf hide" id="transf-'+idx+'" onchange="marcarTransferencia('+idx+',this.value)">'+
+        '<option value="">Selecione a loja de destino</option>'+opcoesLojas+'</select>' : '');
+    box.appendChild(d);
+  });
+  const venc=document.getElementById('d-vencimento');
+  venc.value = atual.vencimentoSugerido || '';
+  const av=document.getElementById('d-avisoparc');
+  if(atual.parcelas>1){av.style.display='';av.textContent='Esta nota tem '+atual.parcelas+' parcelas. Confirme se a data acima é a que interessa.';}
+  else{av.style.display='none';}
+  document.getElementById('sheet-nota').classList.add('on');
+}
+function fecharNota(){document.getElementById('sheet-nota').classList.remove('on')}
+
+function marcarDivergencia(idx,valor){
+  const v=valor.trim();
+  if(v) divergencias[idx]=v; else delete divergencias[idx];
+  document.getElementById('it-'+idx).classList.toggle('divergente', !!v);
+}
+
+function marcarBonificacao(idx,marcado){
+  if(marcado) bonificacoes[idx]=true; else delete bonificacoes[idx];
+  document.getElementById('it-'+idx).classList.toggle('marcado-bonif', marcado);
+}
+
+function toggleTransferencia(idx,marcado){
+  const sel=document.getElementById('transf-'+idx);
+  sel.classList.toggle('hide', !marcado);
+  if(!marcado){ delete transferencias[idx]; document.getElementById('it-'+idx).classList.remove('marcado-transf'); sel.value=''; }
+}
+function marcarTransferencia(idx,lojaId){
+  if(lojaId){ transferencias[idx]=lojaId; document.getElementById('it-'+idx).classList.add('marcado-transf'); }
+  else{ delete transferencias[idx]; document.getElementById('it-'+idx).classList.remove('marcado-transf'); }
+}
+
+async function confirmarNota(){
+  const venc=document.getElementById('d-vencimento').value;
+  if(!venc){alert('Informe a data de vencimento antes de confirmar.');return}
+  const btn=document.getElementById('btn-confirmar'); btn.disabled=true; btn.textContent='Confirmando...';
+  const payload={
+    loja: document.getElementById('loja').value,
+    chave: atual.chave,
+    vencimento: venc,
+    divergencias: Object.entries(divergencias).map(([idx,texto])=>({produto:atual.itens[idx].produto,texto})),
+    bonificacoes: Object.keys(bonificacoes).map(idx=>({produto:atual.itens[idx].produto})),
+    transferencias: Object.entries(transferencias).map(([idx,lojaId])=>({
+      produto:atual.itens[idx].produto,
+      lojaDestinoId:lojaId,
+      lojaDestinoNome:(LOJAS.find(l=>l.id===lojaId)||{}).nome||lojaId
+    })),
+  };
+  try{
+    const r=await fetch('confirmar.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const j=await r.json();
+    if(j.ok){ fecharNota(); carregarLista(); }
+    else{ alert('Não consegui confirmar: '+(j.erro||'erro desconhecido')); }
+  }catch(e){
+    alert('Falha de conexão. Tente novamente.');
+  }finally{
+    btn.disabled=false; btn.textContent='Confirmar recebimento';
+  }
+}
+
+function toggleExclusao(){
+  document.getElementById('bloco-exclusao').classList.toggle('hide');
+}
+
+async function solicitarExclusao(){
+  const motivo = document.getElementById('motivo-exclusao').value.trim();
+  if(!motivo){ alert('Descreve rapidamente por que essa nota é suspeita, isso ajuda o financeiro a decidir.'); return; }
+  if(!confirm('Essa nota vai sair da sua lista e ficar aguardando o financeiro confirmar a exclusão. Confirma?')) return;
+  const payload={ loja: document.getElementById('loja').value, chave: atual.chave, motivo };
+  try{
+    const r=await fetch('excluir.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const j=await r.json();
+    if(j.ok){ fecharNota(); carregarLista(); }
+    else{ alert('Não consegui registrar a solicitação: '+(j.erro||'erro desconhecido')); }
+  }catch(e){
+    alert('Falha de conexão. Tente novamente.');
+  }
+}
+
+function abrirAdicionar(){
+  document.getElementById('add-fornecedor').value='';
+  document.getElementById('add-data').value = new Date().toISOString().slice(0,10);
+  document.getElementById('add-itens').innerHTML='';
+  itemCount=0; addLinhaItem();
+  document.getElementById('add-pagamento').value='Crédito';
+  document.getElementById('add-cartao').value='';
+  document.getElementById('add-obs-dinheiro').value='';
+  document.getElementById('add-pix').value='';
+  document.getElementById('add-foto').value='';
+  document.getElementById('add-pago').checked = true;
+  document.getElementById('add-vencimento').value='';
+  mudouPagamento();
+  mudouPago();
+  document.getElementById('sheet-add').classList.add('on');
+}
+
+let itemCount=0;
+
+function formatarMoeda(el){
+  let digitos = el.value.replace(/\D/g,'');
+  if(!digitos) digitos='0';
+  digitos = digitos.replace(/^0+(?=\d)/,'');
+  while(digitos.length<3) digitos='0'+digitos;
+  const inteiro = digitos.slice(0,-2).replace(/^0+(?=\d)/,'') || '0';
+  const centavos = digitos.slice(-2);
+  el.value = inteiro + ',' + centavos;
+}
+
+function addLinhaItem(){
+  const id='li-'+(itemCount++);
+  const div=document.createElement('div'); div.className='linha-item'; div.id=id;
+  const opcoesUn = UNIDADES_MANUAL.map(u=>'<option value="'+u+'">'+u+'</option>').join('');
+  div.innerHTML =
+    '<div class="campo-mini"><label>Produto</label>'+
+    '<input placeholder="Ex.: cebola" class="produto-linha"></div>'+
+    '<div class="duas-col">'+
+      '<div class="campo-mini"><label>Quantidade</label><input type="number" step="0.01" inputmode="decimal" placeholder="Ex.: 50" class="qtd-linha"></div>'+
+      '<div class="campo-mini"><label>Unidade</label><select class="un-linha">'+opcoesUn+'</select></div>'+
+    '</div>'+
+    '<div class="campo-mini"><label>Valor total pago neste item (R$)</label>'+
+    '<input type="text" inputmode="numeric" placeholder="R$ 0,00" class="valor-linha" oninput="formatarMoeda(this)"></div>'+
+    '<button class="del-linha" onclick="document.getElementById(\''+id+'\').remove()">Remover este item</button>';
+  document.getElementById('add-itens').appendChild(div);
+}
+
+function mudouPagamento(){
+  const forma = document.getElementById('add-pagamento').value;
+  document.getElementById('add-campo-cartao').classList.toggle('hide', forma!=='Crédito' && forma!=='Débito');
+  document.getElementById('add-campo-dinheiro').classList.toggle('hide', forma!=='Dinheiro');
+  document.getElementById('add-campo-pix').classList.toggle('hide', forma!=='PIX');
+}
+
+function mudouPago(){
+  const pago = document.getElementById('add-pago').checked;
+  document.getElementById('add-campo-vencimento').classList.toggle('hide', pago);
+}
+
+async function enviarNotaManual(){
+  const fornecedor = document.getElementById('add-fornecedor').value.trim();
+  const data = document.getElementById('add-data').value;
+  const foto = document.getElementById('add-foto').files[0];
+  const pago = document.getElementById('add-pago').checked;
+  const vencimento = document.getElementById('add-vencimento').value;
+  const linhas = Array.from(document.querySelectorAll('.linha-item'));
+  const itens = [];
+  for (const l of linhas) {
+    const produto = l.querySelector('.produto-linha').value.trim();
+    const qtd = l.querySelector('.qtd-linha').value;
+    const valorItem = l.querySelector('.valor-linha').value;
+    // linha totalmente vazia (sobrou sem preencher): ignora, sem reclamar
+    if (!produto && !qtd && !valorItem) continue;
+    // linha parcialmente preenchida: trava e avisa exatamente qual
+    if (!produto || !qtd || !valorItem) {
+      alert('O item "'+(produto || '(sem nome)')+'" está incompleto. Preencha produto, quantidade e valor, ou remova essa linha.');
+      return;
+    }
+    itens.push({produto, unidade: l.querySelector('.un-linha').value, qtd, valorItem});
+  }
+
+  if (!fornecedor){ alert('Informe o fornecedor.'); return; }
+  if (!data){ alert('Informe a data da compra.'); return; }
+  if (!itens.length){ alert('Adicione ao menos um item completo (produto, quantidade e valor).'); return; }
+  if (!foto){ alert('A foto da nota é obrigatória.'); return; }
+  if (!pago && !vencimento){ alert('Informe a data de vencimento, já que ainda não foi pago.'); return; }
+
+  const forma = document.getElementById('add-pagamento').value;
+  let identificacaoPagamento = '';
+  if (forma==='Crédito' || forma==='Débito') {
+    identificacaoPagamento = document.getElementById('add-cartao').value.trim();
+    if (!identificacaoPagamento){ alert('Informe a identificação do cartão usado (ex.: Master final 1234).'); return; }
+  } else if (forma==='Dinheiro') {
+    identificacaoPagamento = document.getElementById('add-obs-dinheiro').value.trim();
+    if (!identificacaoPagamento){ alert('Informe de onde veio o dinheiro (ex.: retirada do caixa, dia 15/09).'); return; }
+  } else if (forma==='PIX') {
+    identificacaoPagamento = document.getElementById('add-pix').value.trim();
+    if (!identificacaoPagamento){ alert('Informe a conta/chave PIX usada.'); return; }
+  }
+
+  const btn=document.getElementById('btn-add-enviar'); btn.disabled=true; btn.textContent='Enviando...';
+  const fd = new FormData();
+  fd.append('loja', document.getElementById('loja').value);
+  fd.append('fornecedor', fornecedor);
+  fd.append('data', data);
+  fd.append('itens', JSON.stringify(itens));
+  fd.append('formaPagamento', forma);
+  fd.append('identificacaoPagamento', identificacaoPagamento);
+  fd.append('pago', pago ? '1' : '0');
+  fd.append('vencimento', vencimento);
+  fd.append('foto', foto);
+
+  try{
+    const r = await fetch('adicionar.php', {method:'POST', body:fd});
+    const j = await r.json();
+    if(j.ok && j.enviado){ fecharSheet('sheet-add'); carregarLista(); alert('Compra lançada e enviada com sucesso.'); }
+    else if(j.ok && !j.enviado){ fecharSheet('sheet-add'); carregarLista(); alert(j.aviso); }
+    else{ alert('Não consegui lançar: '+(j.erro||'erro desconhecido')); }
+  }catch(e){
+    alert('Falha de conexão. Tente novamente.');
+  }finally{
+    btn.disabled=false; btn.textContent='Adicionar à lista de pendentes';
+  }
+}
+
+init();
+</script>
+</body>
+</html>

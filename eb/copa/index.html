@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Contagem — Espeto Brasileiro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F6F4;--surface:#FFFFFF;--ink:#17201B;--muted:#667069;
+  --primary:#0B6E4F;--primary-dark:#085A40;--amber:#B45309;--amber-bg:#FBF1E3;
+  --red:#C2410C;--line:#E4E7E3;--shadow:0 2px 10px rgba(15,40,30,.08);font-size:16px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121614;--surface:#1B211E;--ink:#EAEEEB;--muted:#9AA39E;--primary:#22A57C;
+  --primary-dark:#1B8566;--line:#2A322E;--amber:#E0973F;--amber-bg:#2A2218;--shadow:0 2px 10px rgba(0,0,0,.3);
+}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  -webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit}
+
+/* LOGIN */
+#login{position:fixed;inset:0;z-index:50;background:var(--primary);display:flex;flex-direction:column;
+  justify-content:center;padding:28px 24px calc(28px + env(safe-area-inset-bottom,0px));color:#fff}
+#login .marca{font-size:13px;font-weight:600;letter-spacing:.14em;opacity:.8;text-transform:uppercase}
+#login h1{font-size:30px;font-weight:700;line-height:1.1;margin:10px 0 4px}
+#login p.sub{opacity:.85;font-size:15px;margin-bottom:34px}
+#login label{display:block;font-size:13px;font-weight:600;margin:0 0 6px 2px;opacity:.9}
+#login .campo{margin-bottom:18px}
+#login input{width:100%;border:0;border-radius:12px;padding:15px 16px;font-size:17px;font-weight:500;color:var(--ink);background:#fff}
+#login .pin{letter-spacing:.4em;text-align:center;font-size:22px}
+#login button{width:100%;border:0;border-radius:12px;padding:16px;margin-top:8px;background:var(--ink);color:#fff;font-size:17px;font-weight:600}
+#login .demo{margin-top:18px;font-size:12.5px;opacity:.75;text-align:center;line-height:1.5}
+
+/* APP */
+#app{display:none;padding-bottom:96px}
+#app.on{display:block}
+header{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);
+  padding:calc(12px + env(safe-area-inset-top,0px)) 16px 10px}
+header .casa{font-size:12px;font-weight:700;letter-spacing:.09em;color:var(--primary);text-transform:uppercase}
+header h2{font-size:17px;font-weight:700;margin:1px 0 2px}
+header .data{font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:9px;text-transform:capitalize}
+.progresso{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.barra{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.barra span{display:block;height:100%;width:0;background:var(--primary);transition:width .25s ease}
+.progresso small{font-size:12.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+.ferramentas{display:flex;gap:8px}
+.busca{flex:1;position:relative}
+.busca input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px 10px 36px;
+  font-size:15px;background:var(--bg);color:var(--ink)}
+.busca input:focus{outline:none;border-color:var(--primary);background:var(--surface)}
+.busca svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--muted)}
+.btn-cat{border:1.5px solid var(--line);background:var(--bg);border-radius:10px;padding:0 14px;font-size:14px;
+  font-weight:600;color:var(--ink);display:flex;align-items:center;gap:6px;white-space:nowrap}
+.btn-cat svg{width:16px;height:16px}
+
+.grupo-tit{position:sticky;top:0;z-index:8;background:var(--bg);padding:16px 16px 7px;
+  font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+.item{background:var(--surface);display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.item .nome{flex:1;min-width:0}
+.item .nome b{display:block;font-size:14.5px;font-weight:600;line-height:1.3}
+.item .nome span{font-size:12px;color:var(--muted);font-weight:600}
+.item.pend{background:var(--amber-bg)}
+.item.pend .nome span{color:var(--amber)}
+.qtd{width:74px;flex:0 0 74px;border:1.5px solid var(--line);border-radius:10px;padding:11px 8px;
+  font-size:17px;font-weight:600;text-align:center;background:var(--bg);color:var(--ink)}
+.qtd:focus{outline:none;border-color:var(--primary);background:var(--surface)}
+.qtd.ok{border-color:var(--primary);background:var(--surface)}
+.qtd.falta{border-color:var(--red);background:#FEF0E9}
+.mais{flex:0 0 auto;border:0;background:transparent;padding:8px 4px;border-radius:8px;color:var(--muted);line-height:0}
+.mais svg{width:20px;height:20px}
+.mais.ativo{color:var(--primary)}
+
+.painel{background:var(--surface);border-bottom:1px solid var(--line);padding:0 16px 14px}
+.painel.hide{display:none}
+.painel .bloco{padding-top:12px}
+.painel label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.painel input,.painel select,.painel textarea{width:100%;border:1.5px solid var(--line);border-radius:9px;
+  padding:10px;font-size:14.5px;background:var(--bg);color:var(--ink)}
+.painel input:focus,.painel select:focus,.painel textarea:focus{outline:none;border-color:var(--primary);background:var(--surface)}
+.painel .corrige{margin-top:12px}
+.painel .campo-cond{margin-top:9px}
+.painel .campo-cond.hide{display:none}
+.excluir-aviso{background:var(--amber-bg);color:var(--amber);border-radius:9px;padding:10px;font-size:13px;font-weight:600;line-height:1.45}
+
+.inserir{margin:16px;padding:15px;border:1.5px dashed var(--primary);border-radius:12px;background:transparent;
+  color:var(--primary);font-size:15px;font-weight:700;width:calc(100% - 32px);display:flex;align-items:center;justify-content:center;gap:8px}
+
+.rodape{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);border-top:1px solid var(--line);
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px))}
+.faltam{background:var(--amber-bg);color:var(--amber);border-radius:10px;padding:9px 12px;font-size:13px;font-weight:700;
+  margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.faltam.hide{display:none}
+.faltam button{border:0;background:var(--amber);color:#fff;border-radius:8px;padding:7px 11px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.enviar{width:100%;border:0;border-radius:12px;padding:16px;background:var(--primary);color:#fff;font-size:17px;font-weight:700;box-shadow:var(--shadow)}
+.enviar:active{background:var(--primary-dark)}
+
+/* overlays */
+.sheet{position:fixed;inset:0;z-index:60;background:rgba(10,20,15,.45);display:none;align-items:flex-end}
+.sheet.on{display:flex}
+.sheet .painel-sheet{background:var(--surface);width:100%;max-height:82vh;overflow:auto;border-radius:20px 20px 0 0;
+  padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px))}
+.sheet h3{font-size:18px;font-weight:700;margin-bottom:4px}
+.sheet p.sub{font-size:13.5px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+.sheet label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 5px;text-transform:uppercase;letter-spacing:.05em}
+.sheet input,.sheet select,.sheet textarea{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--bg);color:var(--ink)}
+.sheet input:focus,.sheet select:focus,.sheet textarea:focus{outline:none;border-color:var(--primary);background:var(--surface)}
+.sheet .acoes{display:flex;gap:10px;margin-top:18px}
+.sheet .acoes button{flex:1;border:0;border-radius:11px;padding:14px;font-size:15px;font-weight:700}
+.sheet .cancela{background:var(--bg);color:var(--ink);border:1.5px solid var(--line)}
+.sheet .ok{background:var(--primary);color:#fff}
+.cats-lista button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:13px 4px;
+  border-bottom:1px solid var(--line);font-size:15px;font-weight:600;color:var(--ink)}
+
+/* resumo */
+#resumo{position:fixed;inset:0;z-index:70;background:var(--bg);display:none;flex-direction:column;
+  padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px));overflow:auto}
+#resumo.on{display:flex}
+#resumo .selo{width:56px;height:56px;border-radius:50%;background:var(--primary);display:grid;place-items:center;margin-bottom:16px}
+#resumo .selo svg{width:30px;height:30px;stroke:#fff}
+#resumo h2{font-size:23px;font-weight:700;margin-bottom:4px}
+#resumo p.lead{color:var(--muted);font-size:14.5px;margin-bottom:20px;line-height:1.5}
+#resumo .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px 16px;margin-bottom:16px}
+#resumo .card .l{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);font-size:14.5px;gap:12px}
+#resumo .card .l:last-child{border-bottom:0}
+#resumo .card .l b{font-weight:700}#resumo .card .l span{color:var(--muted);font-weight:700;white-space:nowrap}
+#resumo .aviso{background:var(--amber-bg);color:var(--amber);border-radius:12px;padding:14px;font-size:13.5px;font-weight:600;line-height:1.5;margin-bottom:20px}
+#resumo button{border:0;border-radius:12px;padding:15px;font-size:16px;font-weight:600;width:100%;background:var(--ink);color:#fff}
+</style>
+</head>
+<body>
+
+<section id="login">
+  <div class="marca">Controle de estoque</div>
+  <h1 id="login-titulo">Contagem</h1>
+  <p class="sub">Entre para lançar a contagem de hoje.</p>
+  <div class="campo"><label for="nome">Seu nome</label><input id="nome" type="text" placeholder="Ex.: João" autocomplete="off"></div>
+  <div class="campo"><label for="pin">PIN (4 dígitos)</label><input id="pin" class="pin" type="tel" inputmode="numeric" maxlength="4" placeholder="••••"></div>
+  <button onclick="entrar()">Entrar</button>
+  <p class="demo">Identifique-se para lançar a contagem de hoje.</p>
+</section>
+
+<main id="app">
+  <header>
+    <div class="casa" id="h-casa"></div>
+    <h2 id="h-setor"></h2>
+    <div class="data" id="h-data"></div>
+    <div class="progresso"><div class="barra"><span id="fill"></span></div><small id="cont">0 de 0</small></div>
+    <div class="ferramentas">
+      <div class="busca">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="busca" type="text" placeholder="Buscar produto" oninput="filtrar(this.value)">
+      </div>
+      <button class="btn-cat" onclick="abrirCats()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        Seções
+      </button>
+    </div>
+  </header>
+  <div id="lista"></div>
+  <button class="inserir" onclick="abrirInserir()">+ Inserir item novo</button>
+</main>
+
+<div class="rodape" id="rodape" style="display:none">
+  <div class="faltam hide" id="faltam"><span id="faltam-txt"></span><button onclick="irVazio()">Ir pro 1º</button></div>
+  <button class="enviar" onclick="enviar()">Enviar contagem</button>
+</div>
+
+<!-- SHEET: categorias -->
+<div class="sheet" id="sheet-cats">
+  <div class="painel-sheet">
+    <h3>Ir para a seção</h3>
+    <p class="sub">Toque para pular direto pra categoria.</p>
+    <div class="cats-lista" id="cats-lista"></div>
+  </div>
+</div>
+
+<!-- SHEET: inserir item -->
+<div class="sheet" id="sheet-inserir">
+  <div class="painel-sheet">
+    <h3>Inserir item novo</h3>
+    <p class="sub">Item que chegou e não está na lista. Vai como pendência pra aprovação antes de entrar na contagem.</p>
+    <label>Nome do produto</label>
+    <input id="novo-nome" placeholder="Ex.: Cerveja Eisenbahn Long Neck 355ml">
+    <label>Unidade de medida</label>
+    <select id="novo-un"></select>
+    <label>Motivo / observação</label>
+    <textarea id="novo-motivo" rows="2" placeholder="Ex.: compras passou a trazer nesse formato"></textarea>
+    <div class="acoes">
+      <button class="cancela" onclick="fecharSheet('sheet-inserir')">Cancelar</button>
+      <button class="ok" onclick="salvarNovo()">Adicionar pendência</button>
+    </div>
+  </div>
+</div>
+
+<section id="resumo">
+  <div class="selo"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+  <h2>Contagem enviada</h2>
+  <p class="lead" id="resumo-lead"></p>
+  <div class="card" id="resumo-itens"></div>
+  <div class="aviso" id="resumo-aviso" style="display:none"></div>
+  <button onclick="fecharResumo()">Voltar para a contagem</button>
+</section>
+
+<script>
+const CASA="Espeto Brasileiro";
+const SETOR="Copa";
+const UNIDADES=["BG","CX","GF","KG","L","ML","PC","PCT","PT","RL","TP","UN"];
+const GRUPOS=[
+{
+"nome": "CERVEJAS 600ML",
+"itens": [
+{
+"id": "cerveja-amstel-garrafa-600ml-1",
+"nome": "Cerveja Amstel Garrafa 600ml",
+"un": "UN"
+},
+{
+"id": "cerveja-antarctica-pilsen-ga-2",
+"nome": "Cerveja Antarctica Pilsen Garrafa 600ml",
+"un": "UN"
+},
+{
+"id": "cerveja-antarctica-original--3",
+"nome": "Cerveja Antarctica Original Garrafa 600ml",
+"un": "UN"
+},
+{
+"id": "cerveja-brahma-chopp-garrafa-4",
+"nome": "Cerveja Brahma Chopp Garrafa 600ml",
+"un": "UN"
+},
+{
+"id": "cerveja-heineken-garrafa-600-5",
+"nome": "Cerveja Heineken Garrafa 600ml",
+"un": "UN"
+},
+{
+"id": "cerveja-spaten-garrafa-600ml-6",
+"nome": "Cerveja Spaten Garrafa 600ml",
+"un": "UN"
+},
+{
+"id": "cerveja-stella-artois-garraf-7",
+"nome": "Cerveja Stella Artois Garrafa 600ml",
+"un": "UN"
+},
+{
+"id": "cerveja-stella-artois-pure-g-8",
+"nome": "Cerveja Stella Artois Pure gold 600ml",
+"un": "UN"
+}
+]
+},
+{
+"nome": "CERVEJAS LONG NECK 330-355ML",
+"itens": [
+{
+"id": "cerveja-budweiser-long-neck--9",
+"nome": "Cerveja Budweiser Long Neck 330ml",
+"un": "UN"
+},
+{
+"id": "cerveja-corona-long-neck-330-10",
+"nome": "Cerveja Corona Long Neck 330ml",
+"un": "UN"
+},
+{
+"id": "cerveja-corona-zero-long-nec-11",
+"nome": "Cerveja Corona Zero Long Neck 330ml",
+"un": "UN"
+},
+{
+"id": "cerveja-heineken-long-neck-3-12",
+"nome": "Cerveja Heineken Long Neck 330ml",
+"un": "UN"
+},
+{
+"id": "cerveja-heineken-zero-long-n-13",
+"nome": "Cerveja Heineken Zero Long Neck 330ml",
+"un": "UN"
+},
+{
+"id": "cerveja-heineken-sem-gluten--14",
+"nome": "Cerveja Heineken sem glúten Long Neck 330ml",
+"un": "UN"
+},
+{
+"id": "cerveja-stella-artois-long-n-15",
+"nome": "Cerveja Stella Artois Long Neck 330ml",
+"un": "UN"
+},
+{
+"id": "cerveja-stella-artois-pure-g-16",
+"nome": "Cerveja Stella Artois Pure Gold Long Neck 330ml",
+"un": "UN"
+},
+{
+"id": "cerveja-brahma-malzbier-lata-17",
+"nome": "Cerveja Brahma Malzbier lata 350ml",
+"un": "UN"
+}
+]
+},
+{
+"nome": "REFRIGERANTES COCA-COLA",
+"itens": [
+{
+"id": "refrigerante-coca-cola-ks-29-18",
+"nome": "Refrigerante Coca-Cola KS 290ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-coca-cola-zero--19",
+"nome": "Refrigerante Coca-Cola Zero KS 290ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-coca-cola-lata--20",
+"nome": "Refrigerante Coca-Cola Lata 350ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-coca-cola-zero--21",
+"nome": "Refrigerante Coca-Cola Zero Lata 350ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-coca-cola-pet-6-22",
+"nome": "Refrigerante Coca-Cola PET 600ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-coca-cola-zero--23",
+"nome": "Refrigerante Coca-Cola Zero PET 600ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-coca-cola-pet-1-24",
+"nome": "Refrigerante Coca-Cola PET 1,5L",
+"un": "UN"
+},
+{
+"id": "refrigerante-coca-cola-zero--25",
+"nome": "Refrigerante Coca-Cola Zero PET 1,5L",
+"un": "UN"
+}
+]
+},
+{
+"nome": "OUTROS REFRIGERANTES",
+"itens": [
+{
+"id": "refrigerante-schweppes-citru-26",
+"nome": "Refrigerante Schweppes Citrus Lata 350ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-schweppes-citru-27",
+"nome": "Refrigerante Schweppes Citrus Zero Lata 350ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-fanta-laranja-l-28",
+"nome": "Refrigerante Fanta Laranja Lata 350ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-fanta-uva-lata--29",
+"nome": "Refrigerante Fanta Uva Lata 350ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-guarana-antarct-30",
+"nome": "Refrigerante Guarana Antarctica Lata 350ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-guarana-antarct-31",
+"nome": "Refrigerante Guarana Antarctica Zero Lata 350ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-guarana-antarct-32",
+"nome": "Refrigerante Guarana Antarctica PET 1,5L",
+"un": "UN"
+},
+{
+"id": "refrigerante-guarana-antarct-33",
+"nome": "Refrigerante Guarana Antarctica Zero PET 1,5L",
+"un": "UN"
+},
+{
+"id": "refrigerante-sprite-lata-350-34",
+"nome": "Refrigerante Sprite Lata 350ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-sprite-zero-lat-35",
+"nome": "Refrigerante Sprite Zero Lata 350ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-h2o-limoneto-50-36",
+"nome": "Refrigerante H2O Limoneto 500ml",
+"un": "UN"
+},
+{
+"id": "refrigerante-h2o-limao-500ml-37",
+"nome": "Refrigerante H2O Limao 500ml",
+"un": "UN"
+}
+]
+},
+{
+"nome": "ENERGETICOS RED BULL",
+"itens": [
+{
+"id": "red-bull-tradicional-lata-25-38",
+"nome": "Red Bull Tradicional Lata 250ml",
+"un": "UN"
+},
+{
+"id": "red-bull-sem-acucar-lata-250-39",
+"nome": "Red Bull Sem Acucar Lata 250ml",
+"un": "UN"
+},
+{
+"id": "red-bull-frutas-tropicais-la-40",
+"nome": "Red Bull Frutas Tropicais Lata 250ml",
+"un": "UN"
+},
+{
+"id": "red-bull-melancia-lata-250ml-41",
+"nome": "Red Bull Melancia Lata 250ml",
+"un": "UN"
+},
+{
+"id": "red-bull-pessego-lata-250ml-42",
+"nome": "Red Bull Pessego Lata 250ml",
+"un": "UN"
+},
+{
+"id": "red-bull-melao-lata-250ml-43",
+"nome": "Red Bull Melao Lata 250ml",
+"un": "UN"
+},
+{
+"id": "red-bull-pomelo-s-acucar-lat-44",
+"nome": "Red Bull Pomelo S/Acucar Lata 250ml",
+"un": "UN"
+}
+]
+},
+{
+"nome": "CHAS E ICE TEA",
+"itens": [
+{
+"id": "cha-mate-leao-limao-copo-300-45",
+"nome": "Cha Mate Leao Limao Copo 300ml",
+"un": "UN"
+},
+{
+"id": "cha-mate-leao-limao-s-acucar-46",
+"nome": "Cha Mate Leao Limao S/Acucar Copo 300ml",
+"un": "UN"
+},
+{
+"id": "cha-mate-leao-tradicional-co-47",
+"nome": "Cha Mate Leao Tradicional Copo 300ml",
+"un": "UN"
+},
+{
+"id": "cha-mate-leao-tradicional-s--48",
+"nome": "Cha Mate Leao Tradicional S/Acucar Copo 300ml",
+"un": "UN"
+},
+{
+"id": "cha-leao-camomila-49",
+"nome": "Cha Leao Camomila",
+"un": "UN"
+},
+{
+"id": "cha-leao-erva-doce-50",
+"nome": "Cha Leao Erva-Doce",
+"un": "UN"
+},
+{
+"id": "ice-tea-pessego-300ml-51",
+"nome": "Ice Tea Pessego 300ml",
+"un": "UN"
+},
+{
+"id": "ice-tea-limao-300ml-52",
+"nome": "Ice Tea Limao 300ml",
+"un": "UN"
+},
+{
+"id": "ice-tea-limao-zero-300ml-53",
+"nome": "Ice Tea Limao Zero 300ml",
+"un": "UN"
+},
+{
+"id": "ice-tea-pessego-zero-300ml-54",
+"nome": "Ice Tea Pessego Zero 300ml",
+"un": "UN"
+}
+]
+},
+{
+"nome": "GUARAVITA",
+"itens": [
+{
+"id": "guaravita-tradicional-copo-2-55",
+"nome": "Guaravita Tradicional Copo 290ml",
+"un": "UN"
+}
+]
+},
+{
+"nome": "SUCOS DEL VALLE",
+"itens": [
+{
+"id": "del-valle-kapo-caju-200ml-56",
+"nome": "Del Valle Kapo Caju 200ml",
+"un": "UN"
+},
+{
+"id": "del-valle-kapo-laranja-200ml-57",
+"nome": "Del Valle Kapo Laranja 200ml",
+"un": "UN"
+},
+{
+"id": "del-valle-kapo-maca-200ml-58",
+"nome": "Del Valle Kapo Maca 200ml",
+"un": "UN"
+},
+{
+"id": "del-valle-kapo-morango-200ml-59",
+"nome": "Del Valle Kapo Morango 200ml",
+"un": "UN"
+},
+{
+"id": "del-valle-kapo-uva-200ml-60",
+"nome": "Del Valle Kapo Uva 200ml",
+"un": "UN"
+},
+{
+"id": "del-valle-nectar-uva-lata-29-61",
+"nome": "Del Valle Nectar Uva Lata 290ml",
+"un": "UN"
+},
+{
+"id": "del-valle-nectar-maracuja-la-62",
+"nome": "Del Valle Nectar Maracuja Lata 290ml",
+"un": "UN"
+}
+]
+},
+{
+"nome": "AGUAS MINERAIS",
+"itens": [
+{
+"id": "agua-tonica-antarctica-lata--63",
+"nome": "Agua Tonica Antarctica Lata 350ml",
+"un": "UN"
+},
+{
+"id": "agua-tonica-antarctica-zero--64",
+"nome": "Agua Tonica Antarctica Zero Lata 350ml",
+"un": "UN"
+},
+{
+"id": "agua-mineral-sem-gas-500ml-65",
+"nome": "Agua mineral sem gás 500ml",
+"un": "UN"
+},
+{
+"id": "agua-mineral-com-gas-500ml-66",
+"nome": "Água mineral com gás 500ml",
+"un": "UN"
+}
+]
+},
+{
+"nome": "SAKE",
+"itens": [
+{
+"id": "sake-azuma-soft-740ml-67",
+"nome": "Sake Azuma Soft 740ml",
+"un": "ML"
+},
+{
+"id": "sake-azuma-dourado-740ml-68",
+"nome": "Sake Azuma Dourado 740ml",
+"un": "ML"
+}
+]
+},
+{
+"nome": "SMIRNOFF ICE",
+"itens": [
+{
+"id": "smirnoff-ice-original-lata-2-69",
+"nome": "Smirnoff Ice Original Lata 269ml",
+"un": "UN"
+},
+{
+"id": "smirnoff-ice-garrafa-275ml-70",
+"nome": "Smirnoff Ice Garrafa 275ml",
+"un": "UN"
+}
+]
+},
+{
+"nome": "DESTILADOS",
+"itens": [
+{
+"id": "whisky-jw-black-label-1l-71",
+"nome": "Whisky JW Black Label 1L",
+"un": "ML"
+},
+{
+"id": "whisky-jw-red-label-1l-72",
+"nome": "Whisky JW Red Label 1L",
+"un": "ML"
+},
+{
+"id": "whisky-jack-daniel-s-1l-73",
+"nome": "Whisky Jack Daniel's 1L",
+"un": "ML"
+},
+{
+"id": "whisky-chivas-regal-12-anos--74",
+"nome": "Whisky Chivas regal 12 anos 1L",
+"un": "ML"
+},
+{
+"id": "vodka-skyy-750ml-75",
+"nome": "Vodka Skyy 750ml",
+"un": "ML"
+},
+{
+"id": "vodka-smirnoff-garrafa-1l-76",
+"nome": "Vodka Smirnoff Garrafa 1L",
+"un": "ML"
+},
+{
+"id": "vodka-absolut-1l-77",
+"nome": "Vodka Absolut 1L",
+"un": "ML"
+},
+{
+"id": "vodka-nuda-1l-78",
+"nome": "Vodka Nuda 1L",
+"un": "ML"
+},
+{
+"id": "gin-tanqueray-750ml-79",
+"nome": "Gin Tanqueray 750ml",
+"un": "ML"
+},
+{
+"id": "gin-tanqueray-bossa-nova-700-80",
+"nome": "Gin Tanqueray Bossa Nova 700ml",
+"un": "ML"
+},
+{
+"id": "gin-arpoador-750ml-81",
+"nome": "Gin Arpoador 750ml",
+"un": "ML"
+},
+{
+"id": "gin-beefeater-750ml-82",
+"nome": "Gin Beefeater 750ml",
+"un": "ML"
+},
+{
+"id": "rum-bacardi-carta-blanca-980-83",
+"nome": "Rum Bacardi Carta Blanca 980ml",
+"un": "ML"
+},
+{
+"id": "rum-bacardi-carta-oro-980ml-84",
+"nome": "Rum Bacardi Carta Oro 980ml",
+"un": "ML"
+},
+{
+"id": "aguardente-salinas-tradicion-85",
+"nome": "Aguardente Salinas Tradicional 1L",
+"un": "ML"
+},
+{
+"id": "aguardente-seleta-600ml-86",
+"nome": "Aguardente Seleta 600ml",
+"un": "ML"
+},
+{
+"id": "conhaque-domecq-1l-87",
+"nome": "Conhaque Domecq 1L",
+"un": "ML"
+},
+{
+"id": "cachaca-pirassununga-51-garr-88",
+"nome": "Cachaça Pirassununga 51 Garrafa 965ml",
+"un": "ML"
+},
+{
+"id": "cachaca-cafune-1l-89",
+"nome": "Cachaça Cafuné 1L",
+"un": "ML"
+},
+{
+"id": "cachaca-velho-barreiro-910ml-90",
+"nome": "Cachaça Velho Barreiro 910ml",
+"un": "ML"
+},
+{
+"id": "campari-998ml-91",
+"nome": "Campari 998ml",
+"un": "ML"
+},
+{
+"id": "aperol-750ml-92",
+"nome": "Aperol 750ml",
+"un": "ML"
+},
+{
+"id": "malibu-750ml-93",
+"nome": "Malibu 750ml",
+"un": "ML"
+},
+{
+"id": "tequila-ouro-750ml-94",
+"nome": "Tequila ouro 750ml",
+"un": "ML"
+},
+{
+"id": "tequila-prata-750ml-95",
+"nome": "Tequila prata 750ml",
+"un": "ML"
+},
+{
+"id": "martini-750ml-96",
+"nome": "Martini 750ml",
+"un": "ML"
+}
+]
+},
+{
+"nome": "LICORES E XAROPES",
+"itens": [
+{
+"id": "licor-cointreau-700ml-97",
+"nome": "Licor Cointreau 700ml",
+"un": "ML"
+},
+{
+"id": "licor-43-700ml-98",
+"nome": "Licor 43 700ml",
+"un": "ML"
+},
+{
+"id": "licor-curacau-blue-laranja-7-99",
+"nome": "Licor Curaçau Blue Laranja 700ml",
+"un": "ML"
+},
+{
+"id": "licor-peach-pessego-720ml-100",
+"nome": "Licor Peach (Pêssego) 720ml",
+"un": "ML"
+},
+{
+"id": "xarope-monin-grenadine-700ml-101",
+"nome": "Xarope Monin Grenadine 700ml",
+"un": "ML"
+},
+{
+"id": "xarope-monin-laranja-spritz--102",
+"nome": "Xarope Monin Laranja Spritz 700ml",
+"un": "ML"
+},
+{
+"id": "xarope-monin-limao-siciliano-103",
+"nome": "Xarope Monin Limao Siciliano 700ml",
+"un": "ML"
+},
+{
+"id": "xarope-monin-tangerina-700ml-104",
+"nome": "Xarope Monin Tangerina 700ml",
+"un": "ML"
+},
+{
+"id": "xarope-monin-maca-verde-700m-105",
+"nome": "Xarope Monin Maçã verde 700ml",
+"un": "ML"
+}
+]
+},
+{
+"nome": "VINHOS",
+"itens": [
+{
+"id": "vinho-santa-helena-cab-sauvi-106",
+"nome": "Vinho Santa Helena Cab. Sauvignon Tinto 375ml",
+"un": "GF"
+},
+{
+"id": "vinho-santa-helena-sauv-blan-107",
+"nome": "Vinho Santa Helena Sauv. Blanc Branco 375ml",
+"un": "GF"
+},
+{
+"id": "vinho-santa-helena-cab-sauvi-108",
+"nome": "Vinho Santa Helena Cab. Sauvignon Tinto 750ml",
+"un": "GF"
+},
+{
+"id": "casillero-del-diablo-cab-sau-109",
+"nome": "Casillero Del Diablo Cab. Sauvignon Tinto 750ml",
+"un": "GF"
+},
+{
+"id": "casillero-del-diablo-chardon-110",
+"nome": "Casillero Del Diablo Chardonnay 750ml",
+"un": "GF"
+},
+{
+"id": "casillero-del-diablo-sauv-bl-111",
+"nome": "Casillero Del Diablo Sauv. Blanc 750ml",
+"un": "GF"
+},
+{
+"id": "casal-garcia-fino-branco-mei-112",
+"nome": "Casal Garcia Fino Branco Meio Seco 750ml",
+"un": "GF"
+},
+{
+"id": "casal-garcia-fino-tinto-meio-113",
+"nome": "Casal Garcia Fino Tinto Meio Seco 750ml",
+"un": "GF"
+}
+]
+},
+{
+"nome": "ESPUMANTES",
+"itens": [
+{
+"id": "espumante-chandon-garrafa-75-114",
+"nome": "Espumante Chandon Garrafa 750ml",
+"un": "GF"
+},
+{
+"id": "salton-brut-garrafa-750ml-115",
+"nome": "Salton Brut Garrafa 750ml",
+"un": "GF"
+},
+{
+"id": "salton-demi-sec-garrafa-750m-116",
+"nome": "Salton Demi-Sec Garrafa 750ml",
+"un": "GF"
+},
+{
+"id": "salton-prosecco-uvas-glera75-117",
+"nome": "Salton Prosecco uvas glera750ml",
+"un": "GF"
+}
+]
+},
+{
+"nome": "CAFÉ",
+"itens": [
+{
+"id": "capsula-cafe-118",
+"nome": "Capsula café",
+"un": "UN"
+}
+]
+},
+{
+"nome": "HORTIFRUTI",
+"itens": [
+{
+"id": "hortela-verde-119",
+"nome": "Hortelã-verde",
+"un": "UN"
+},
+{
+"id": "laranja-120",
+"nome": "Laranja",
+"un": "KG"
+},
+{
+"id": "limao-121",
+"nome": "Limão",
+"un": "KG"
+},
+{
+"id": "morango-122",
+"nome": "Morango",
+"un": "KG"
+},
+{
+"id": "abacaxi-123",
+"nome": "Abacaxi",
+"un": "KG"
+},
+{
+"id": "maracuja-124",
+"nome": "Maracujá",
+"un": "KG"
+}
+]
+},
+{
+"nome": "POLPAS DE FRUTA",
+"itens": [
+{
+"id": "maracuja-polpa-congelada-100-125",
+"nome": "Maracujá, polpa, congelada (100G.)",
+"un": "UN"
+},
+{
+"id": "morango-polpa-congelada-90g-126",
+"nome": "Morango, polpa congelada (90G.)",
+"un": "UN"
+},
+{
+"id": "abacaxi-polpa-congelada-100g-127",
+"nome": "Abacaxi, polpa congelada (100G.)",
+"un": "UN"
+}
+]
+},
+{
+"nome": "ESPECIARIAS E INSUMOS DE BAR",
+"itens": [
+{
+"id": "zimbro-128",
+"nome": "Zimbro",
+"un": "KG"
+},
+{
+"id": "anis-estrelado-129",
+"nome": "Anis estrelado",
+"un": "KG"
+},
+{
+"id": "pimenta-rosa-130",
+"nome": "Pimenta rosa",
+"un": "KG"
+},
+{
+"id": "calda-de-chocolate-131",
+"nome": "Calda de chocolate",
+"un": "KG"
+}
+]
+},
+{
+"nome": "DOCES",
+"itens": [
+{
+"id": "brownie-132",
+"nome": "Brownie",
+"un": "UN"
+},
+{
+"id": "brigadeiro-133",
+"nome": "Brigadeiro",
+"un": "UN"
+},
+{
+"id": "palha-italiana-134",
+"nome": "Palha italiana",
+"un": "UN"
+},
+{
+"id": "torta-de-brigadeiro-com-rasp-135",
+"nome": "Torta de brigadeiro com raspas",
+"un": "UN"
+},
+{
+"id": "torta-de-limao-136",
+"nome": "Torta de limão",
+"un": "UN"
+}
+]
+},
+{
+"nome": "SACHES E PORCOES INDIVIDUAIS",
+"itens": [
+{
+"id": "ketchup-sache-7g-137",
+"nome": "Ketchup Sache 7g",
+"un": "CX"
+},
+{
+"id": "mostarda-sache-7g-138",
+"nome": "Mostarda Sache 7g",
+"un": "CX"
+},
+{
+"id": "maionese-sache-7g-139",
+"nome": "Maionese Sache 7g",
+"un": "CX"
+},
+{
+"id": "sal-sache-0-8g-140",
+"nome": "Sal Sache 0,8g",
+"un": "CX"
+},
+{
+"id": "adocante-sache-141",
+"nome": "Adoçante sachê",
+"un": "CX"
+},
+{
+"id": "acucar-sache-5g-142",
+"nome": "Acucar Sache 5g",
+"un": "CX"
+}
+]
+},
+{
+"nome": "MARMITEX E POTES",
+"itens": [
+{
+"id": "pote-redondo-145ml-c-tampa-p-143",
+"nome": "Pote Redondo 145ml c/ tampa (pote de molho p/ 2)",
+"un": "UN"
+},
+{
+"id": "pote-75ml-c-tampa-pote-de-mo-144",
+"nome": "Pote 75ml c/ tampa (pote de molho p/ 1)",
+"un": "UN"
+},
+{
+"id": "garrafinha-300ml-145",
+"nome": "Garrafinha 300ml",
+"un": "UN"
+},
+{
+"id": "embalagem-torta-fatia-146",
+"nome": "Embalagem torta fatia",
+"un": "UN"
+}
+]
+},
+{
+"nome": "SACOS E SACOLAS",
+"itens": [
+{
+"id": "saco-kraft-espeto-brasileiro-147",
+"nome": "Saco Kraft Espeto Brasileiro",
+"un": "UN"
+},
+{
+"id": "saco-kraft-grande-31x24x16-148",
+"nome": "Saco Kraft Grande 31x24x16",
+"un": "UN"
+},
+{
+"id": "sacola-branca-grande-30x45-149",
+"nome": "Sacola Branca Grande 30x45",
+"un": "KG"
+},
+{
+"id": "pacote-de-saco-plastico-p-ta-150",
+"nome": "Pacote de Saco Plastico p/ Talher 6x25 c/1000",
+"un": "PCT"
+}
+]
+},
+{
+"nome": "DESCARTAVEIS",
+"itens": [
+{
+"id": "copo-300ml-descartavel-151",
+"nome": "Copo 300ml descartável",
+"un": "UN"
+},
+{
+"id": "garfo-152",
+"nome": "Garfo",
+"un": "UN"
+},
+{
+"id": "faca-153",
+"nome": "Faca",
+"un": "UN"
+},
+{
+"id": "colher-154",
+"nome": "Colher",
+"un": "UN"
+},
+{
+"id": "canudo-fino-papel-branco-155",
+"nome": "Canudo fino papel branco",
+"un": "UN"
+},
+{
+"id": "canudo-mexedor-pazinha-156",
+"nome": "Canudo mexedor pazinha",
+"un": "UN"
+},
+{
+"id": "palito-de-dente-sache-157",
+"nome": "Palito de Dente Sache",
+"un": "UN"
+}
+]
+},
+{
+"nome": "ETIQUETAS",
+"itens": [
+{
+"id": "etiqueta-redonda-espeto-bras-158",
+"nome": "Etiqueta Redonda Espeto Brasileiro c/1000",
+"un": "RL"
+},
+{
+"id": "etiqueta-lacre-seguranca-del-159",
+"nome": "Etiqueta Lacre Seguranca Delivery rolo c/1000",
+"un": "RL"
+},
+{
+"id": "etiqueta-validade-40x60-c-10-160",
+"nome": "Etiqueta Validade 40x60 c/1000",
+"un": "RL"
+}
+]
+},
+{
+"nome": "HIGIENE",
+"itens": [
+{
+"id": "papel-higienico-banheiro-cli-161",
+"nome": "Papel Higienico Banheiro Cliente",
+"un": "UN"
+},
+{
+"id": "papel-toalha-auto-corte-banh-162",
+"nome": "Papel Toalha Auto Corte Banheiro Cliente",
+"un": "UN"
+},
+{
+"id": "guardanapo-18unid-163",
+"nome": "Guardanapo 18unid",
+"un": "CX"
+},
+{
+"id": "sabonete-espuma-600ml-banhei-164",
+"nome": "Sabonete Espuma 600ml Banheiro Cliente",
+"un": "UN"
+},
+{
+"id": "alcool-gel-70-500g-banheiro--165",
+"nome": "Alcool Gel 70% 500g Banheiro Cliente",
+"un": "UN"
+}
+]
+}
+];
+
+
+let valores={},obs={},correcoes={},novos=[];
+const LSKEY='demo_'+SETOR;
+try{const s=JSON.parse(localStorage.getItem(LSKEY)||'{}');valores=s.valores||{};obs=s.obs||{};correcoes=s.correcoes||{};}catch(e){}
+const TOTAL=GRUPOS.reduce((s,g)=>s+g.itens.length,0);
+
+function salvarLocal(){try{localStorage.setItem(LSKEY,JSON.stringify({valores,obs,correcoes}))}catch(e){}}
+
+function entrar(){
+  window._nome=document.getElementById('nome').value.trim()||'Colega';
+  document.getElementById('login').style.display='none';
+  document.getElementById('app').classList.add('on');
+  document.getElementById('rodape').style.display='block';
+}
+
+function init(){
+  document.title='Contagem '+SETOR+' — '+CASA;
+  document.getElementById('login-titulo').innerHTML='Contagem<br>da '+SETOR;
+  document.getElementById('h-casa').textContent=CASA+' · '+SETOR;
+  document.getElementById('h-setor').textContent='Contagem de estoque';
+  document.getElementById('h-data').textContent=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  const un=document.getElementById('novo-un');
+  UNIDADES.forEach(u=>{const o=document.createElement('option');o.value=u;o.textContent=u;un.appendChild(o)});
+  render();
+}
+
+function render(){
+  const lista=document.getElementById('lista');lista.innerHTML='';
+  GRUPOS.forEach((g,gi)=>{
+    const t=document.createElement('div');t.className='grupo-tit';t.id='cat-'+gi;t.textContent=g.nome;lista.appendChild(t);
+    g.itens.forEach(it=>{
+      const v=valores[it.id]??'';
+      const temPend=!!correcoes[it.id];
+      const row=document.createElement('div');row.className='item'+(temPend?' pend':'');row.id='row-'+it.id;
+      row.dataset.nome=it.nome.toLowerCase();
+      row.innerHTML=
+        '<div class="nome"><b>'+it.nome+'</b><span>'+(temPend?rotuloPend(it.id):it.un)+'</span></div>'+
+        '<input class="qtd'+(v!==''?' ok':'')+'" inputmode="decimal" placeholder="—" value="'+v+'" oninput="setVal(\''+it.id+'\',this)">'+
+        '<button class="mais" id="mais-'+it.id+'" onclick="togglePainel(\''+it.id+'\')" title="Observação e correção">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg></button>';
+      lista.appendChild(row);
+      const p=document.createElement('div');p.className='painel hide';p.id='pan-'+it.id;
+      p.innerHTML=painelHTML(it);lista.appendChild(p);
+    });
+  });
+  atualizar();
+}
+
+function rotuloPend(id){const c=correcoes[id];if(!c)return '';
+  if(c.tipo==='excluir')return 'exclusão solicitada';
+  if(c.tipo==='nome')return 'correção de nome';
+  if(c.tipo==='unidade')return 'correção de unidade';return 'correção solicitada';}
+
+function painelHTML(it){
+  return '<div class="bloco"><label>Observação</label>'+
+    '<input placeholder="Algo a relatar sobre este item (opcional)" value="'+(obs[it.id]||'')+'" oninput="setObs(\''+it.id+'\',this.value)"></div>'+
+    '<div class="corrige"><label>Corrigir item</label>'+
+    '<select onchange="tipoCorrige(\''+it.id+'\',this.value)">'+
+      '<option value="">Nenhuma correção</option>'+
+      '<option value="nome">Nome do item está errado</option>'+
+      '<option value="unidade">Unidade de medida está errada</option>'+
+      '<option value="excluir">Excluir item (não existe mais)</option>'+
+    '</select>'+
+    '<div class="campo-cond hide" id="cc-'+it.id+'"></div></div>';
+}
+
+function setVal(id,el){valores[id]=el.value;el.classList.toggle('ok',el.value!=='');el.classList.remove('falta');salvarLocal();atualizar()}
+function setObs(id,v){obs[id]=v;salvarLocal()}
+function togglePainel(id){document.getElementById('pan-'+id).classList.toggle('hide');document.getElementById('mais-'+id).classList.toggle('ativo')}
+
+function tipoCorrige(id,tipo){
+  const cc=document.getElementById('cc-'+id);
+  if(!tipo){cc.className='campo-cond hide';cc.innerHTML='';delete correcoes[id];marcaPend(id);salvarLocal();return}
+  cc.className='campo-cond';
+  if(tipo==='nome'){cc.innerHTML='<input placeholder="Nome correto do item" oninput="setCorr(\''+id+'\',\'nome\',this.value)">';}
+  else if(tipo==='unidade'){let o=UNIDADES.map(u=>'<option value="'+u+'">'+u+'</option>').join('');
+    cc.innerHTML='<select onchange="setCorr(\''+id+'\',\'unidade\',this.value)"><option value="">Escolha a unidade correta</option>'+o+'</select>';}
+  else if(tipo==='excluir'){cc.innerHTML='<div class="excluir-aviso">Este item será enviado como pedido de exclusão. Some da contagem só depois da sua aprovação.</div>';
+    correcoes[id]={tipo:'excluir',valor:true};marcaPend(id);salvarLocal();}
+}
+function setCorr(id,tipo,valor){correcoes[id]={tipo,valor};marcaPend(id);salvarLocal()}
+function marcaPend(id){const row=document.getElementById('row-'+id);const temPend=!!correcoes[id];
+  row.classList.toggle('pend',temPend);const span=row.querySelector('.nome span');
+  const it=acharItem(id);span.textContent=temPend?rotuloPend(id):it.un}
+
+function atualizar(){
+  const feitos=GRUPOS.reduce((s,g)=>s+g.itens.filter(it=>(valores[it.id]??'')!=='').length,0);
+  document.getElementById('fill').style.width=(feitos/TOTAL*100)+'%';
+  document.getElementById('cont').textContent=feitos+' de '+TOTAL;
+}
+
+function filtrar(q){
+  q=q.trim().toLowerCase();
+  document.querySelectorAll('.item').forEach(r=>{
+    const match=!q||r.dataset.nome.includes(q);
+    r.style.display=match?'':'none';
+    const pan=document.getElementById('pan-'+r.id.slice(4));if(pan&&!match)pan.classList.add('hide');
+  });
+  document.querySelectorAll('.grupo-tit').forEach(t=>t.style.display=q?'none':'');
+}
+
+function abrirCats(){
+  const c=document.getElementById('cats-lista');c.innerHTML='';
+  GRUPOS.forEach((g,gi)=>{const b=document.createElement('button');b.textContent=g.nome;
+    b.onclick=()=>{fecharSheet('sheet-cats');document.getElementById('cat-'+gi).scrollIntoView({behavior:'smooth'})};c.appendChild(b)});
+  document.getElementById('sheet-cats').classList.add('on');
+}
+function abrirInserir(){document.getElementById('sheet-inserir').classList.add('on')}
+function fecharSheet(id){document.getElementById(id).classList.remove('on')}
+function salvarNovo(){
+  const nome=document.getElementById('novo-nome').value.trim();
+  if(!nome){alert('Escreva o nome do produto.');return}
+  novos.push({nome,un:document.getElementById('novo-un').value,motivo:document.getElementById('novo-motivo').value.trim()});
+  document.getElementById('novo-nome').value='';document.getElementById('novo-motivo').value='';
+  fecharSheet('sheet-inserir');
+  alert('Item adicionado como pendência. Ele vai junto no envio pra sua aprovação.');
+}
+
+function irVazio(){
+  for(const g of GRUPOS)for(const it of g.itens){
+    if((valores[it.id]??'')===''){const el=document.querySelector('#row-'+it.id+' .qtd');
+      el.classList.add('falta');el.scrollIntoView({behavior:'smooth',block:'center'});el.focus();return}}
+}
+
+function montarDados(){
+  const itens=[];
+  GRUPOS.forEach(g=>g.itens.forEach(it=>{
+    itens.push({categoria:g.nome,produto:it.nome,unidade:it.un,qtd:(valores[it.id]??''),obs:(obs[it.id]||'')});
+  }));
+  const corr=Object.entries(correcoes).map(([id,c])=>({produto:(acharItem(id).nome||id),tipo:c.tipo,valor:(c.valor===true?'':c.valor)}));
+  return {casa:CASA,setor:SETOR,responsavel:(window._nome||''),itens,correcoes:corr,novos};
+}
+
+async function enviar(){
+  const vazios=[];GRUPOS.forEach(g=>g.itens.forEach(it=>{if((valores[it.id]??'')==='')vazios.push(it.id)}));
+  if(vazios.length){
+    const f=document.getElementById('faltam');f.classList.remove('hide');
+    document.getElementById('faltam-txt').textContent='Faltam '+vazios.length+' itens. Todos precisam de contagem (zero conta).';
+    vazios.forEach(id=>{const el=document.querySelector('#row-'+id+' .qtd');if(el)el.classList.add('falta')});
+    irVazio();return;
+  }
+  const btn=document.querySelector('.enviar');const rot=btn.textContent;btn.disabled=true;btn.textContent='Enviando...';
+  const dados=montarDados();
+  try{
+    const r=await fetch('../enviar.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(dados)});
+    const j=await r.json().catch(()=>({ok:false,erro:'resposta inesperada do servidor'}));
+    if(j.ok){mostrarResumo(true);limparTudo();}
+    else{alert('Não consegui enviar: '+(j.erro||'erro desconhecido'));}
+  }catch(e){
+    mostrarResumo(false); // sem servidor PHP (ex.: testando fora do site)
+  }finally{
+    btn.disabled=false;btn.textContent=rot;
+  }
+}
+
+function mostrarResumo(enviado){
+  document.getElementById('resumo-lead').textContent=
+    (window._nome||'Você')+' concluiu a contagem dos '+TOTAL+' itens em '+new Date().toLocaleDateString('pt-BR')+'.';
+  const box=document.getElementById('resumo-itens');box.innerHTML='';
+  const linha=(a,b)=>{const l=document.createElement('div');l.className='l';l.innerHTML='<b>'+a+'</b><span>'+b+'</span>';box.appendChild(l)};
+  linha('Itens contados',TOTAL+' de '+TOTAL);
+  linha('Correções solicitadas',Object.keys(correcoes).length);
+  linha('Itens novos sugeridos',novos.length);
+  linha('Observações',Object.values(obs).filter(v=>v&&v.trim()).length);
+  const a=document.getElementById('resumo-aviso');a.style.display='';
+  a.textContent=enviado
+    ? 'Planilha enviada pro email com a data de hoje. Pode fechar.'
+    : 'Modo teste (sem servidor): a planilha ainda não saiu. No site publicado, o envio é real.';
+  document.getElementById('resumo').classList.add('on');
+}
+
+function limparTudo(){
+  valores={};obs={};correcoes={};novos=[];
+  try{localStorage.removeItem(LSKEY)}catch(e){}
+  render();
+}
+function fecharResumo(){document.getElementById('resumo').classList.remove('on')}
+
+function acharItem(id){for(const g of GRUPOS)for(const it of g.itens)if(it.id===id)return it;return{un:''}}
+init();
+</script>
+</body>
+</html>

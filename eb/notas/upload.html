@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Subir notas (XML) — Espeto Brasileiro</title>
+<style>
+:root{--bg:#F5F6F4;--surface:#fff;--ink:#17201B;--muted:#667069;--primary:#0B6E4F;--line:#E4E7E3;font-size:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:24px 18px calc(24px + env(safe-area-inset-bottom,0px))}
+h1{font-size:20px;margin-bottom:4px}
+p.sub{color:var(--muted);font-size:14px;margin-bottom:22px;line-height:1.5}
+label{display:block;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin:0 0 6px}
+select,input[type=file]{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:12px;font-size:15px;background:var(--surface);margin-bottom:20px}
+button{width:100%;border:0;border-radius:12px;padding:15px;background:var(--primary);color:#fff;font-size:16px;font-weight:700}
+button:disabled{opacity:.6}
+#resultado{margin-top:20px}
+.linha{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:8px;font-size:14px}
+.linha.ok{border-left:4px solid var(--primary)}
+.linha.erro{border-left:4px solid #C2410C;background:#FEF0E9}
+.linha b{display:block;font-size:14.5px}
+.linha span{color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<h1>Subir notas da Saipos</h1>
+<p class="sub">Baixe os XMLs das notas na Saipos e selecione todos aqui de uma vez. O sistema vai ler cada um e deixar pendente para o gerente validar.</p>
+
+<label for="loja">Loja</label>
+<select id="loja"></select>
+
+<label for="arquivos">Arquivos XML</label>
+<input type="file" id="arquivos" accept=".xml" multiple>
+
+<button id="btn" onclick="enviar()">Enviar notas</button>
+
+<div id="resultado"></div>
+
+<script>
+async function carregarLojas(){
+  const r = await fetch('lojas.json'); const d = await r.json();
+  const sel = document.getElementById('loja');
+  d.lojas.forEach(l=>{const o=document.createElement('option');o.value=l.id;o.textContent=l.nome+' ('+l.cnpj+')';sel.appendChild(o)});
+}
+carregarLojas();
+
+async function enviar(){
+  const loja = document.getElementById('loja').value;
+  const arquivos = document.getElementById('arquivos').files;
+  if(!arquivos.length){alert('Selecione ao menos um arquivo XML.');return}
+  const btn=document.getElementById('btn'); btn.disabled=true; btn.textContent='Enviando...';
+  const fd = new FormData();
+  fd.append('loja', loja);
+  for(const f of arquivos) fd.append('xmls[]', f);
+  const res = document.getElementById('resultado'); res.innerHTML='';
+  try{
+    const r = await fetch('upload.php', {method:'POST', body:fd});
+    const j = await r.json();
+    (j.resultados||[]).forEach(item=>{
+      const d=document.createElement('div');
+      d.className='linha '+(item.ok?'ok':'erro');
+      d.innerHTML='<b>'+item.arquivo+'</b><span>'+(item.ok? 'Nota '+item.numero+' — '+item.fornecedor : item.erro)+'</span>';
+      res.appendChild(d);
+    });
+    if(j.erroGeral){alert(j.erroGeral)}
+  }catch(e){
+    res.innerHTML='<div class="linha erro"><b>Falha ao enviar</b><span>Verifique a conexão e tente de novo.</span></div>';
+  }finally{
+    btn.disabled=false; btn.textContent='Enviar notas';
+  }
+}
+</script>
+</body>
+</html>

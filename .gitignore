@@ -1,0 +1,29 @@
+# =====================================================================
+# NUNCA vai pro Git: senhas, certificados e dados reais de clientes.
+# Isso é reforço, além de já usarmos arquivos .example sem senha.
+# =====================================================================
+
+# arquivos de configuração com senha de verdade (só o .example vai)
+config.php
+
+# certificado digital (nunca deve existir aqui, só no servidor)
+sefaz/certificado/*.pfx
+sefaz/certificado/*.p12
+
+# dados reais de clientes (contagens, notas, fotos, backups)
+data/pendentes/*/
+data/confirmadas/*/
+data/pendente-exclusao/*/
+data/fotos/*/
+backups/*.csv
+backups/*.json
+
+# mas mantém o esqueleto de proteção (.htaccess/index.php) rastreado
+!data/**/.htaccess
+!data/**/index.php
+!backups/.htaccess
+!backups/index.php
+
+# arquivos do sistema operacional
+.DS_Store
+Thumbs.db

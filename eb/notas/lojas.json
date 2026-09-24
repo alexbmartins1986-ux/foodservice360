@@ -1,0 +1,12 @@
+{
+  "_comentario": "Lista de lojas do grupo Espeto Brasileiro. Cada uma tem um CNPJ diferente. Todas aqui dentro já contam como 'vinculadas' entre si (para a função de transferência, mais pra frente). Para adicionar uma loja nova do grupo, copie um bloco e ajuste id, nome e cnpj. O id não pode repetir e não deve ter espaço.",
+
+  "grupo": "Espeto Brasileiro",
+  "lojas": [
+    {
+      "id": "loja1",
+      "nome": "Espeto Brasileiro — TROQUE PELO NOME/BAIRRO REAL",
+      "cnpj": "00000000000000"
+    }
+  ]
+}
