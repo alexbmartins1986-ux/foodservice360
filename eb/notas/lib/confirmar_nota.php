@@ -72,6 +72,62 @@ function confirmarNotaEEnviar(array $nota, string $lojaNome, string $vencimento,
     $nomeArq = "Nota_{$lojaNome}_{$nota['numero']}_" . date('Y-m-d') . ".csv";
     $nomeArq = preg_replace('/[^A-Za-z0-9_.-]/', '_', $nomeArq);
 
+    // tenta salvar no banco novo ANTES de tentar o email (opcional, nunca
+    // quebra se o banco nao estiver configurado, como acontece na producao hoje;
+    // e assim o dado da compra nao se perde mesmo se o email falhar)
+    try {
+        $dbConfig = __DIR__ . '/../../db/config.php';
+        $dbConexao = __DIR__ . '/../../db/conexao.php';
+        if (file_exists($dbConfig) && file_exists($dbConexao)) {
+            require_once $dbConexao;
+            $pdo = conectarBanco();
+
+            // hoje so existe 1 cliente no sistema inteiro; usa o que ja existir,
+            // sem depender do texto do nome bater exatamente entre telas diferentes
+            $clienteId = $pdo->query("SELECT id FROM clientes ORDER BY id LIMIT 1")->fetchColumn();
+            if (!$clienteId) {
+                $pdo->prepare("INSERT INTO clientes (nome) VALUES (?)")->execute([$lojaNome]);
+                $clienteId = $pdo->lastInsertId();
+            }
+            $stmt = $pdo->prepare("SELECT id FROM lojas WHERE cliente_id = ? AND codigo = ?");
+            $stmt->execute([$clienteId, $nota['loja'] ?? 'loja1']);
+            $lojaId = $stmt->fetchColumn();
+            if (!$lojaId) {
+                $pdo->prepare("INSERT INTO lojas (cliente_id, codigo, nome) VALUES (?, ?, ?)")
+                    ->execute([$clienteId, $nota['loja'] ?? 'loja1', $lojaNome]);
+                $lojaId = $pdo->lastInsertId();
+            }
+
+            $fornecedorId = null;
+            $nomeForn = trim($nota['fornecedorNome'] ?? '');
+            if ($nomeForn !== '') {
+                $stmt = $pdo->prepare("SELECT id FROM fornecedores WHERE cliente_id = ? AND nome = ?");
+                $stmt->execute([$clienteId, $nomeForn]);
+                $fornecedorId = $stmt->fetchColumn();
+                if (!$fornecedorId) {
+                    $pdo->prepare("INSERT INTO fornecedores (cliente_id, nome, cnpj) VALUES (?, ?, ?)")
+                        ->execute([$clienteId, $nomeForn, $nota['fornecedorCnpj'] ?? null]);
+                    $fornecedorId = $pdo->lastInsertId();
+                }
+            }
+
+            $dataCompra = date('Y-m-d', strtotime($nota['emissao'] ?? 'now'));
+            $notaRef = $nota['numero'] ?? ($nota['chave'] ?? '');
+            $stmtItem = $pdo->prepare("INSERT INTO compras_itens
+                (loja_id, fornecedor_id, nota_referencia, produto_texto_original, unidade_original, quantidade, valor_unitario, valor_total, data_compra)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            foreach ($nota['itens'] as $it) {
+                $stmtItem->execute([
+                    $lojaId, $fornecedorId, $notaRef,
+                    $it['produto'] ?? '', $it['unidade'] ?? '',
+                    $it['qtd'] ?? 0, $it['valorUnit'] ?? 0, $it['valorItem'] ?? 0, $dataCompra
+                ]);
+            }
+        }
+    } catch (Throwable $e) {
+        // banco fora do ar ou nao configurado: tudo bem, o email continua normal
+    }
+
     $mail = new PHPMailer(true);
     try {
         $mail->isSMTP();
