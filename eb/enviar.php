@@ -74,6 +74,48 @@ if ($correcoes || $novos) {
 $pasta = __DIR__ . '/backups';
 if (!is_dir($pasta)) { @mkdir($pasta, 0700, true); }
 @file_put_contents($pasta . '/' . $nomeArq, $csv);
+// salva também uma versão estruturada (JSON), pra outros scripts lerem depois
+$dadosSalvos = ['casa' => $casa, 'setor' => $setor, 'responsavel' => $resp,
+                'enviadaEm' => date('c'), 'itens' => $dados['itens']];
+@file_put_contents($pasta . '/' . preg_replace('/\.csv$/', '.json', $nomeArq),
+    json_encode($dadosSalvos, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
+
+// 4.5. Tenta salvar no banco de dados novo (opcional, nunca quebra o envio
+//      se o banco ainda não estiver configurado, como é o caso na produção hoje)
+try {
+    if (file_exists(__DIR__ . '/db/config.php')) {
+        require_once __DIR__ . '/db/conexao.php';
+        $pdo = conectarBanco();
+
+        $stmt = $pdo->prepare("SELECT id FROM clientes WHERE nome = ?");
+        $stmt->execute([$casa]);
+        $clienteId = $stmt->fetchColumn();
+        if (!$clienteId) {
+            $pdo->prepare("INSERT INTO clientes (nome) VALUES (?)")->execute([$casa]);
+            $clienteId = $pdo->lastInsertId();
+        }
+
+        $stmt = $pdo->prepare("SELECT id FROM lojas WHERE cliente_id = ? AND nome = ?");
+        $stmt->execute([$clienteId, $casa]);
+        $lojaId = $stmt->fetchColumn();
+        if (!$lojaId) {
+            $pdo->prepare("INSERT INTO lojas (cliente_id, codigo, nome) VALUES (?, 'loja1', ?)")
+                ->execute([$clienteId, $casa]);
+            $lojaId = $pdo->lastInsertId();
+        }
+
+        $pdo->prepare("INSERT INTO contagens (loja_id, setor, responsavel, enviada_em) VALUES (?, ?, ?, NOW())")
+            ->execute([$lojaId, $setor, $resp]);
+        $contagemId = $pdo->lastInsertId();
+
+        $stmtItem = $pdo->prepare("INSERT INTO contagens_itens (contagem_id, produto_texto_original, unidade_original, quantidade) VALUES (?, ?, ?, ?)");
+        foreach ($dados['itens'] as $it) {
+            $stmtItem->execute([$contagemId, $it['produto'] ?? '', $it['unidade'] ?? '', $it['qtd'] ?? 0]);
+        }
+    }
+} catch (Throwable $e) {
+    // banco fora do ar ou não configurado: tudo bem, o email continua sendo enviado normalmente
+}
 
 // 5. Envia por email com a planilha anexada
 $mail = new PHPMailer(true);
