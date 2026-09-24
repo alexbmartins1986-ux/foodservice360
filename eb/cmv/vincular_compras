@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Vincular Compras — Foodservice360</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F5F6F4;--surface:#fff;--ink:#17201B;--muted:#667069;--primary:#0B6E4F;--primary-dark:#085A40;
+  --amber:#B45309;--amber-bg:#FBF1E3;--red:#DC2626;--red-bg:#FEE2E2;--line:#E4E7E3;
+  --shadow:0 2px 10px rgba(15,40,30,.08);font-size:16px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121614;--surface:#1B211E;--ink:#EAEEEB;
+  --muted:#9AA39E;--primary:#22A57C;--primary-dark:#1B8566;--line:#2A322E;--amber:#E0973F;--amber-bg:#2A2218;
+  --red:#F87171;--red-bg:#2A1516}}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit}
+
+header{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);
+  padding:calc(14px + env(safe-area-inset-top,0px)) 18px 14px}
+header .tit{font-size:12px;font-weight:700;letter-spacing:.09em;color:var(--primary);text-transform:uppercase}
+header h1{font-size:19px;font-weight:700;margin:2px 0 0}
+
+.banner{margin:14px 16px 0;background:var(--red-bg);color:var(--red);border-radius:12px;padding:13px 15px;
+  font-size:13.5px;font-weight:700;line-height:1.5}
+.banner.hide{display:none}
+.banner ul{margin:6px 0 0 18px;font-weight:600}
+
+#lista{padding:14px 16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px;
+  box-shadow:var(--shadow);cursor:pointer}
+.card b{font-size:15px;display:block}
+.card span{font-size:13px;color:var(--muted);font-weight:600}
+.vazio{text-align:center;color:var(--muted);padding:50px 20px;font-size:14.5px;line-height:1.6}
+
+/* ---- tela de detalhe (vincular itens) ---- */
+.sheet{position:fixed;inset:0;z-index:60;background:var(--bg);display:none;flex-direction:column}
+.sheet.on{display:flex}
+.sheet .cabecalho{padding:calc(14px + env(safe-area-inset-top,0px)) 16px 12px;background:var(--surface);border-bottom:1px solid var(--line)}
+.sheet .cabecalho .voltar{border:0;background:transparent;color:var(--primary);font-size:14.5px;font-weight:700;margin-bottom:8px}
+.sheet .cabecalho h2{font-size:17px;font-weight:700}
+.sheet .cabecalho .sub{color:var(--muted);font-size:13.5px;font-weight:600}
+.sheet .corpo{flex:1;overflow:auto;padding:14px 16px}
+
+.item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:12px}
+.item.divergente{border-color:var(--amber);background:var(--amber-bg)}
+.item.vinculado{border-color:var(--primary)}
+.item .cabecoto{display:flex;justify-content:space-between;gap:10px;margin-bottom:8px}
+.item b{font-size:14.5px}
+.item .qtd{font-size:13px;color:var(--muted);font-weight:700;white-space:nowrap}
+.item .aviso-div{font-size:12.5px;color:var(--amber);font-weight:700;margin-bottom:8px}
+
+.sugestao{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:9px;padding:9px 11px;margin-bottom:8px}
+.sugestao .txt{flex:1;font-size:13.5px}
+.sugestao .txt b{display:block;font-size:14px}
+.sugestao button{border:0;background:var(--primary);color:#fff;border-radius:7px;padding:7px 12px;font-size:12.5px;font-weight:700}
+
+.buscabox{position:relative}
+.buscabox input{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:10px 11px;font-size:13.5px;background:var(--bg);color:var(--ink)}
+.resultados{margin-top:6px}
+.resultados button{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);
+  border-radius:8px;padding:9px 11px;font-size:13.5px;margin-bottom:6px;color:var(--ink)}
+.resultados button:hover{border-color:var(--primary)}
+
+.novo-produto{margin-top:8px;border-top:1px dashed var(--line);padding-top:8px}
+.novo-produto summary{font-size:12.5px;font-weight:700;color:var(--primary);cursor:pointer}
+.novo-produto .campos{display:flex;gap:8px;margin-top:8px}
+.novo-produto input{flex:1;border:1.5px solid var(--line);border-radius:8px;padding:9px;font-size:13px;background:var(--bg);color:var(--ink)}
+.novo-produto button{border:0;background:var(--primary);color:#fff;border-radius:8px;padding:9px 12px;font-size:12.5px;font-weight:700;white-space:nowrap}
+
+.escolhido{display:none;align-items:center;justify-content:space-between;background:var(--bg);border-radius:9px;padding:10px 12px}
+.escolhido.on{display:flex}
+.escolhido b{font-size:14px}
+.escolhido button{border:0;background:transparent;color:var(--muted);font-size:12px;font-weight:700}
+
+.rodape-fixo{padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:1px solid var(--line)}
+.confirmar{width:100%;border:0;border-radius:12px;padding:16px;background:var(--primary);color:#fff;font-size:16px;font-weight:700}
+.confirmar:disabled{opacity:.5}
+.progresso-txt{text-align:center;font-size:12.5px;color:var(--muted);font-weight:700;margin-bottom:8px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="tit">Foodservice360 · Espeto Brasileiro</div>
+  <h1>Vincular Compras</h1>
+</header>
+
+<div class="banner hide" id="banner"></div>
+<div id="lista"></div>
+
+<!-- TELA DE VÍNCULO -->
+<div class="sheet" id="sheet-vincular">
+  <div class="cabecalho">
+    <button class="voltar" onclick="fecharDetalhe()">‹ Voltar</button>
+    <h2 id="d-titulo"></h2>
+    <div class="sub" id="d-sub"></div>
+  </div>
+  <div class="corpo" id="d-itens"></div>
+  <div class="rodape-fixo">
+    <div class="progresso-txt" id="progresso-txt"></div>
+    <button class="confirmar" id="btn-confirmar" onclick="confirmarVinculos()" disabled>Confirmar vínculos</button>
+  </div>
+</div>
+
+<script>
+let PENDENTES = [];
+let GRUPO_ATUAL = null;
+let ITENS_ATUAL = [];
+let ESCOLHAS = {}; // item_id -> {tipo:'existente', produto_cmv_id, nome} ou {tipo:'novo', nome, unidade}
+
+async function init(){ await carregarPendentes(); }
+
+async function carregarPendentes(){
+  const r = await fetch('listar_pendentes_compras.php');
+  const j = await r.json();
+  PENDENTES = j.pendentes || [];
+  renderBanner();
+  renderLista();
+}
+
+function renderBanner(){
+  const b = document.getElementById('banner');
+  if (!PENDENTES.length){ b.classList.add('hide'); return; }
+  b.classList.remove('hide');
+  if (PENDENTES.length === 1){
+    const p = PENDENTES[0];
+    b.innerHTML = `⚠ Compra pendente de vínculo: <b>${p.loja_nome} · ${p.fornecedor_nome || 'Fornecedor não identificado'}</b>, nota ${p.nota_referencia}, de ${formatarDataSimples(p.data_compra)}.`;
+  } else {
+    const linhas = PENDENTES.map(p => `<li>${p.loja_nome} · ${p.fornecedor_nome || 'Fornecedor não identificado'} — nota ${p.nota_referencia} — ${formatarDataSimples(p.data_compra)}</li>`).join('');
+    b.innerHTML = `⚠ ${PENDENTES.length} compras pendentes de vínculo:<ul>${linhas}</ul>`;
+  }
+}
+
+function formatarData(iso){ const d = new Date(iso.replace(' ','T')); return isNaN(d) ? iso : d.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}); }
+function formatarDataSimples(iso){ const d = new Date(iso+'T00:00:00'); return isNaN(d) ? iso : d.toLocaleDateString('pt-BR'); }
+
+function renderLista(){
+  const box = document.getElementById('lista'); box.innerHTML = '';
+  if (!PENDENTES.length){ box.innerHTML = '<div class="vazio">Nenhuma compra pendente. Tudo vinculado ✓</div>'; return; }
+  PENDENTES.forEach(p=>{
+    const c = document.createElement('div'); c.className = 'card';
+    c.onclick = () => abrirDetalhe(p);
+    c.innerHTML = `<b>${p.loja_nome} · ${p.fornecedor_nome || 'Fornecedor não identificado'}</b><span>Nota ${p.nota_referencia} · ${p.total_itens} itens · ${formatarDataSimples(p.data_compra)}</span>`;
+    box.appendChild(c);
+  });
+}
+
+async function abrirDetalhe(p){
+  const params = new URLSearchParams({loja_id: p.loja_id, fornecedor_id: p.fornecedor_id ?? '', nota_referencia: p.nota_referencia, data_compra: p.data_compra});
+  const r = await fetch('detalhe_compra.php?'+params.toString());
+  const j = await r.json();
+  if (!j.ok){ alert('Não consegui abrir: '+j.erro); return; }
+  GRUPO_ATUAL = j.grupo; ITENS_ATUAL = j.itens; ESCOLHAS = {};
+
+  document.getElementById('d-titulo').textContent = `${GRUPO_ATUAL.loja_nome} · ${GRUPO_ATUAL.fornecedor_nome || 'Fornecedor não identificado'}`;
+  document.getElementById('d-sub').textContent = `Nota ${GRUPO_ATUAL.nota_referencia} · ${ITENS_ATUAL.length} itens · ${formatarDataSimples(GRUPO_ATUAL.data_compra)}`;
+
+  const box = document.getElementById('d-itens'); box.innerHTML = '';
+  ITENS_ATUAL.forEach(it => box.appendChild(criarLinhaItem(it)));
+  atualizarProgresso();
+  document.getElementById('sheet-vincular').classList.add('on');
+}
+function fecharDetalhe(){ document.getElementById('sheet-vincular').classList.remove('on'); carregarPendentes(); }
+
+function criarLinhaItem(it){
+  const div = document.createElement('div');
+  div.className = 'item' + (it.divergencia_unidade ? ' divergente' : '');
+  div.id = 'item-'+it.id;
+
+  let html = `<div class="cabecoto"><b>${it.produto_texto_original}</b><span class="qtd">${Number(it.quantidade)} ${it.unidade_original} · R$ ${Number(it.valor_unitario).toFixed(2).replace('.',',')}/un</span></div>`;
+  if (it.divergencia_unidade){
+    html += `<div class="aviso-div">⚠ A unidade da compra (${it.unidade_original}) é diferente da unidade do catálogo (${it.sugestao.unidade_padrao}). Confira antes de aceitar.</div>`;
+  }
+  if (it.sugestao){
+    html += `<div class="sugestao"><div class="txt">Sugestão: <b>${it.sugestao.nome_padrao}</b> (${it.sugestao.unidade_padrao})</div>
+      <button onclick="aceitarSugestao(${it.id}, ${it.sugestao.produto_cmv_id}, '${escapeAttr(it.sugestao.nome_padrao)}')">Aceitar</button></div>`;
+  }
+  html += `<div class="escolhido" id="escolhido-${it.id}"></div>`;
+  html += `<div class="buscabox" id="busca-${it.id}">
+      <input placeholder="Buscar produto já cadastrado..." oninput="buscarProduto(${it.id}, this.value)">
+      <div class="resultados" id="resultados-${it.id}"></div>
+    </div>`;
+  html += `<details class="novo-produto"><summary>+ Não existe, cadastrar produto novo</summary>
+      <div class="campos">
+        <input placeholder="Nome padrão" id="novo-nome-${it.id}">
+        <input placeholder="Un." id="novo-un-${it.id}" style="flex:0 0 70px" value="${it.unidade_original}">
+        <button onclick="criarNovoProduto(${it.id})">Criar</button>
+      </div>
+    </details>`;
+  div.innerHTML = html;
+  return div;
+}
+function escapeAttr(s){ return String(s).replace(/'/g,"\\'"); }
+
+function aceitarSugestao(itemId, produtoId, nome){
+  escolher(itemId, {tipo:'existente', produto_cmv_id: produtoId, nome});
+}
+
+let buscaTimer;
+function buscarProduto(itemId, q){
+  clearTimeout(buscaTimer);
+  buscaTimer = setTimeout(async ()=>{
+    const r = await fetch('buscar_produtos.php?q='+encodeURIComponent(q));
+    const j = await r.json();
+    const box = document.getElementById('resultados-'+itemId); box.innerHTML = '';
+    (j.produtos||[]).forEach(p=>{
+      const b = document.createElement('button');
+      b.textContent = `${p.nome_padrao} (${p.unidade_padrao})`;
+      b.onclick = () => escolher(itemId, {tipo:'existente', produto_cmv_id: p.id, nome: p.nome_padrao});
+      box.appendChild(b);
+    });
+  }, 250);
+}
+
+function criarNovoProduto(itemId){
+  const nome = document.getElementById('novo-nome-'+itemId).value.trim();
+  const un = document.getElementById('novo-un-'+itemId).value.trim();
+  if (!nome || !un){ alert('Preencha nome e unidade do produto novo.'); return; }
+  escolher(itemId, {tipo:'novo', nome, unidade: un});
+}
+
+function escolher(itemId, escolha){
+  ESCOLHAS[itemId] = escolha;
+  const div = document.getElementById('item-'+itemId);
+  div.classList.add('vinculado');
+  document.getElementById('busca-'+itemId).style.display = 'none';
+  const esc = document.getElementById('escolhido-'+itemId);
+  esc.classList.add('on');
+  esc.innerHTML = `<b>✓ ${escolha.nome}</b><button onclick="desfazerEscolha(${itemId})">Trocar</button>`;
+  atualizarProgresso();
+}
+function desfazerEscolha(itemId){
+  delete ESCOLHAS[itemId];
+  const div = document.getElementById('item-'+itemId);
+  div.classList.remove('vinculado');
+  document.getElementById('busca-'+itemId).style.display = '';
+  document.getElementById('escolhido-'+itemId).classList.remove('on');
+  atualizarProgresso();
+}
+
+function atualizarProgresso(){
+  const feitos = Object.keys(ESCOLHAS).length;
+  const total = ITENS_ATUAL.length;
+  document.getElementById('progresso-txt').textContent = `${feitos} de ${total} vinculados`;
+  document.getElementById('btn-confirmar').disabled = feitos < total;
+}
+
+async function confirmarVinculos(){
+  const vinculos = Object.entries(ESCOLHAS).map(([item_id, e]) => ({item_id: Number(item_id), ...e}));
+  const btn = document.getElementById('btn-confirmar'); btn.disabled = true; btn.textContent = 'Salvando...';
+  try{
+    const r = await fetch('vincular_compras.php', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({vinculos})});
+    const j = await r.json();
+    if (j.ok){ alert('Compra vinculada com sucesso.'); fecharDetalhe(); }
+    else { alert('Não consegui salvar: '+j.erro); btn.disabled=false; btn.textContent='Confirmar vínculos'; }
+  }catch(e){
+    alert('Falha de conexão.'); btn.disabled=false; btn.textContent='Confirmar vínculos';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
