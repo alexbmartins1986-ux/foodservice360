@@ -4,6 +4,13 @@
    Não precisa editar nada aqui. As configurações ficam no config.php.
    ===================================================================== */
 
+header('Content-Type: application/json; charset=utf-8');
+
+if (!file_exists(__DIR__ . '/config.php')) {
+    http_response_code(500);
+    echo json_encode(['ok' => false, 'erro' => 'Falta o arquivo eb/config.php neste ambiente (copie de config.example.php e preencha o email).']);
+    exit;
+}
 require __DIR__ . '/config.php';
 require __DIR__ . '/lib/Exception.php';
 require __DIR__ . '/lib/PHPMailer.php';
@@ -11,7 +18,6 @@ require __DIR__ . '/lib/SMTP.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-header('Content-Type: application/json; charset=utf-8');
 date_default_timezone_set('America/Sao_Paulo');
 
 // monta uma linha de CSV (separador ; e aspas, padrão Excel Brasil)
@@ -83,20 +89,20 @@ $dadosSalvos = ['casa' => $casa, 'setor' => $setor, 'responsavel' => $resp,
 // 4.5. Tenta salvar no banco de dados novo (opcional, nunca quebra o envio
 //      se o banco ainda não estiver configurado, como é o caso na produção hoje)
 try {
-    if (file_exists(__DIR__ . '/db/config.php')) {
+    if (file_exists(__DIR__ . '/db/config.php') && file_exists(__DIR__ . '/db/conexao.php')) {
         require_once __DIR__ . '/db/conexao.php';
         $pdo = conectarBanco();
 
-        $stmt = $pdo->prepare("SELECT id FROM clientes WHERE nome = ?");
-        $stmt->execute([$casa]);
-        $clienteId = $stmt->fetchColumn();
+        // hoje so existe 1 cliente no sistema inteiro; usa o que ja existir,
+        // sem depender do texto do nome bater exatamente entre telas diferentes
+        $clienteId = $pdo->query("SELECT id FROM clientes ORDER BY id LIMIT 1")->fetchColumn();
         if (!$clienteId) {
             $pdo->prepare("INSERT INTO clientes (nome) VALUES (?)")->execute([$casa]);
             $clienteId = $pdo->lastInsertId();
         }
 
-        $stmt = $pdo->prepare("SELECT id FROM lojas WHERE cliente_id = ? AND nome = ?");
-        $stmt->execute([$clienteId, $casa]);
+        $stmt = $pdo->prepare("SELECT id FROM lojas WHERE cliente_id = ? AND codigo = ?");
+        $stmt->execute([$clienteId, 'loja1']);
         $lojaId = $stmt->fetchColumn();
         if (!$lojaId) {
             $pdo->prepare("INSERT INTO lojas (cliente_id, codigo, nome) VALUES (?, 'loja1', ?)")
